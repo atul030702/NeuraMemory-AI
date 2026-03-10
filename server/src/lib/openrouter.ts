@@ -1,10 +1,8 @@
 import OpenAI from 'openai';
-import dotenv from 'dotenv';
+import { env } from '../config/env.js';
 
-dotenv.config();
-
-const apiKey = process.env.OPENROUTER_API_KEY;
-const baseUrl = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
+const apiKey = env.OPENROUTER_API_KEY;
+const baseUrl = env.OPENROUTER_BASE_URL;
 
 let openrouter: OpenAI;
 
@@ -20,8 +18,8 @@ export function getOpenRouterClient(): OpenAI {
       baseURL: baseUrl,
       apiKey,
       defaultHeaders: {
-        'HTTP-Referer': process.env.OPENROUTER_REFERER,
-        'X-Title': process.env.OPENROUTER_TITLE,
+        ...(env.OPENROUTER_REFERER && { 'HTTP-Referer': env.OPENROUTER_REFERER }),
+        ...(env.OPENROUTER_TITLE && { 'X-Title': env.OPENROUTER_TITLE }),
       },
     });
     console.log('--- OpenRouter Client Initialized ---');

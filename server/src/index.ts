@@ -2,11 +2,13 @@
  * Basic entry point for the server.
  */
 
+import { env } from './config/env.js';
+
 async function main() {
   console.log('--- NeuraMemory-AI Server Starting ---');
-  console.log('Time:', new Date().toLocaleString());
-  console.log('Status: Running in Development Mode');
-  console.log('Auto-reload is working! 🎉');
+  console.log('Node Version:', process.version);
+  console.log('Environment:', env.NODE_ENV);
+  console.log('Status: Core services ready for initialization');
   console.log('--------------------------------------');
 }
 

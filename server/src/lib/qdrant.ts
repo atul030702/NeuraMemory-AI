@@ -1,10 +1,8 @@
 import { QdrantClient } from '@qdrant/js-client-rest';
-import dotenv from 'dotenv';
+import { env } from '../config/env.js';
 
-dotenv.config();
-
-const url = process.env.QDRANT_URL || 'http://localhost:6333';
-const apiKey = process.env.QDRANT_API_KEY;
+const url = env.QDRANT_URL;
+const apiKey = env.QDRANT_API_KEY;
 
 let qdrant: QdrantClient;
 

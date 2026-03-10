@@ -1,9 +1,7 @@
 import { MongoClient } from 'mongodb';
-import dotenv from 'dotenv';
+import { env } from '../config/env.js';
 
-dotenv.config();
-
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/neuramemory';
+const uri = env.MONGODB_URI;
 let client: MongoClient;
 
 /**
