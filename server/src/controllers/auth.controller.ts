@@ -1,34 +1,42 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
 import { loginService, registerService } from '../services/auth.service.js';
 import { AppError } from '../utils/AppError.js';
 
-// ---------------------------------------------------------------------------
-// Validation schemas
-// ---------------------------------------------------------------------------
+const emailSchema = z
+  .string({
+    required_error: 'Email is required.',
+    invalid_type_error: 'Email must be a string.',
+  })
+  .trim()
+  .toLowerCase()
+  .email('Please provide a valid email address.');
 
 const loginSchema = z.object({
-  email: z.string().email('Please provide a valid email address.'),
-  password: z.string().min(1, 'Password is required.'),
+  email: emailSchema,
+  password: z
+    .string({
+      required_error: 'Password is required.',
+      invalid_type_error: 'Password must be a string.',
+    })
+    .trim()
+    .min(1, 'Password is required.'),
 });
 
 const registerSchema = z.object({
-  email: z.string().email('Please provide a valid email address.'),
+  email: emailSchema,
   password: z
-    .string()
+    .string({
+      required_error: 'Password is required.',
+      invalid_type_error: 'Password must be a string.',
+    })
+    .trim()
+    .min(1, 'Password is required.')
     .min(8, 'Password must be at least 8 characters.')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter.')
     .regex(/[0-9]/, 'Password must contain at least one number.'),
 });
 
-// ---------------------------------------------------------------------------
-// Controllers
-// ---------------------------------------------------------------------------
-
-/**
- * POST /api/v1/login
- * Validates credentials and returns a signed JWT on success.
- */
 export async function loginController(
   req: Request,
   res: Response,
@@ -37,7 +45,10 @@ export async function loginController(
   try {
     const result = loginSchema.safeParse(req.body);
     if (!result.success) {
-      throw new AppError(400, result.error.errors[0].message);
+      throw new AppError(
+        400,
+        result.error.errors[0]?.message ?? 'Invalid input.',
+      );
     }
 
     const { email, password } = result.data;
@@ -49,10 +60,6 @@ export async function loginController(
   }
 }
 
-/**
- * POST /api/v1/register
- * Validates request body, creates a new user, and returns a signed JWT.
- */
 export async function registerController(
   req: Request,
   res: Response,
@@ -61,7 +68,10 @@ export async function registerController(
   try {
     const result = registerSchema.safeParse(req.body);
     if (!result.success) {
-      throw new AppError(400, result.error.errors[0].message);
+      throw new AppError(
+        400,
+        result.error.errors[0]?.message ?? 'Invalid input.',
+      );
     }
 
     const { email, password } = result.data;

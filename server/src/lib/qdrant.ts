@@ -13,7 +13,7 @@ export function getQdrantClient(): QdrantClient {
   if (!qdrant) {
     qdrant = new QdrantClient({
       url,
-      apiKey,
+      ...(apiKey ? { apiKey } : {}),
     });
     console.log(`--- Qdrant Client Initialized at ${url} ---`);
   }

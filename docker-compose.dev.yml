@@ -1,24 +1,35 @@
+# Development overrides for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
 services:
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
+      target: builder # Use builder stage for dev (has all deps)
     command: npm run dev
     environment:
       - NODE_ENV=development
     volumes:
-      - ./server:/app
-      - /app/node_modules
+      - ./server/src:/app/src:ro
+      - ./server/tsconfig.json:/app/tsconfig.json:ro
+      - ./server/.env:/app/.env:ro
     ports:
       - "3000:3000"
-      - "9229:9229" # For debugging
+      - "9229:9229" # Node.js debug port
+    restart: no # Don't auto-restart in dev (easier to see crashes)
 
   client:
     build:
       context: ./client
       dockerfile: Dockerfile
+    command: npm run dev
     volumes:
-      - ./client:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173"
+      - ./client/src:/app/src:ro
+      - ./client/public:/app/public:ro
+      - ./client/index.html:/app/index.html:ro
+      - ./client/vite.config.ts:/app/vite.config.ts:ro
+      - ./client/tsconfig.json:/app/tsconfig.json:ro
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    restart: no

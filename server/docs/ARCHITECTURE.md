@@ -61,17 +61,17 @@ src/
 
 ### Directory Responsibilities
 
-| Directory | Purpose | Examples |
-|-----------|---------|----------|
-| `config/` | Configuration and environment setup | `env.ts` - Zod validation of env vars |
-| `controllers/` | HTTP layer - parse requests, call services | `auth.controller.ts` - login/register handlers |
-| `services/` | Business logic - independent of transport | `auth.service.ts` - password hashing, JWT signing |
-| `repositories/` | Data access - CRUD operations | `user.repository.ts` - MongoDB queries |
-| `middleware/` | Cross-cutting concerns | `errorHandler.ts` - error formatting |
-| `routes/` | Route definitions | `auth.route.ts` - Express Router setup |
-| `types/` | TypeScript interfaces | `auth.types.ts` - IUser, AuthResponse |
-| `utils/` | Generic helpers | `AppError.ts` - custom error class |
-| `lib/` | External service clients | `mongodb.ts`, `qdrant.ts`, `openrouter.ts` |
+| Directory       | Purpose                                    | Examples                                          |
+| --------------- | ------------------------------------------ | ------------------------------------------------- |
+| `config/`       | Configuration and environment setup        | `env.ts` - Zod validation of env vars             |
+| `controllers/`  | HTTP layer - parse requests, call services | `auth.controller.ts` - login/register handlers    |
+| `services/`     | Business logic - independent of transport  | `auth.service.ts` - password hashing, JWT signing |
+| `repositories/` | Data access - CRUD operations              | `user.repository.ts` - MongoDB queries            |
+| `middleware/`   | Cross-cutting concerns                     | `errorHandler.ts` - error formatting              |
+| `routes/`       | Route definitions                          | `auth.route.ts` - Express Router setup            |
+| `types/`        | TypeScript interfaces                      | `auth.types.ts` - IUser, AuthResponse             |
+| `utils/`        | Generic helpers                            | `AppError.ts` - custom error class                |
+| `lib/`          | External service clients                   | `mongodb.ts`, `qdrant.ts`, `openrouter.ts`        |
 
 ---
 
@@ -133,7 +133,7 @@ try {
   const result = await loginService(email, password);
   res.status(200).json(result);
 } catch (err) {
-  next(err);  // Passed to errorHandler middleware
+  next(err); // Passed to errorHandler middleware
 }
 ```
 
@@ -244,6 +244,7 @@ try {
 **Purpose**: Handle HTTP-specific concerns
 
 **Responsibilities**:
+
 - Parse and validate request body/params/query (Zod)
 - Call appropriate service methods
 - Map service responses to HTTP status codes
@@ -272,12 +273,13 @@ export async function registerController(
     // 3. Return HTTP response
     res.status(201).json(response);
   } catch (err) {
-    next(err);  // Delegate to error handler
+    next(err); // Delegate to error handler
   }
 }
 ```
 
 **Key Points**:
+
 - Controllers never contain business logic
 - They are thin wrappers around services
 - Always async and use try-catch with `next(err)`
@@ -289,6 +291,7 @@ export async function registerController(
 **Purpose**: Implement business logic
 
 **Responsibilities**:
+
 - Orchestrate multiple repository calls
 - Apply business rules (password validation, duplicate checks)
 - Hash passwords, sign JWTs, etc.
@@ -319,7 +322,7 @@ export async function registerService(
   const token = jwt.sign(
     { userId: user._id.toString(), email: user.email },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN }
+    { expiresIn: env.JWT_EXPIRES_IN },
   );
 
   return {
@@ -332,6 +335,7 @@ export async function registerService(
 ```
 
 **Key Points**:
+
 - Services are transport-agnostic (could be used by GraphQL, gRPC, CLI)
 - They coordinate between repositories
 - All business logic lives here
@@ -343,6 +347,7 @@ export async function registerService(
 **Purpose**: Abstract database operations
 
 **Responsibilities**:
+
 - Execute database queries (MongoDB, Qdrant)
 - Create/update indexes
 - Return typed results (`WithId<IUser>`, etc.)
@@ -354,7 +359,7 @@ export async function registerService(
 ```typescript
 // repositories/user.repository.ts
 export async function findUserByEmail(
-  email: string
+  email: string,
 ): Promise<WithId<IUser> | null> {
   const db = await getDb();
   return db.collection<IUser>('users').findOne({ email });
@@ -380,6 +385,7 @@ export async function createUser(
 ```
 
 **Key Points**:
+
 - Repositories are the **only** layer that knows about database structure
 - They return domain objects, not database cursors
 - Reusable across services
@@ -394,8 +400,8 @@ export async function createUser(
 
 ```typescript
 interface IUser {
-  email: string;           // Unique, indexed
-  passwordHash: string;    // bcrypt hash (12 rounds)
+  email: string; // Unique, indexed
+  passwordHash: string; // bcrypt hash (12 rounds)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -405,6 +411,7 @@ db.collection('users').createIndex({ email: 1 }, { unique: true });
 ```
 
 **Why MongoDB?**
+
 - Flexible schema for evolving user profiles
 - Native JSON support
 - Excellent Node.js driver
@@ -415,8 +422,8 @@ db.collection('users').createIndex({ email: 1 }, { unique: true });
 ```typescript
 // Vector embeddings for memories
 interface MemoryVector {
-  id: string;              // UUID
-  vector: number[];        // 1536-dim embedding (OpenAI)
+  id: string; // UUID
+  vector: number[]; // 1536-dim embedding (OpenAI)
   payload: {
     userId: string;
     content: string;
@@ -427,6 +434,7 @@ interface MemoryVector {
 ```
 
 **Why Qdrant?**
+
 - Purpose-built for vector similarity search
 - High performance with large datasets
 - Rich filtering capabilities
@@ -497,7 +505,7 @@ export function errorHandler(
 ```typescript
 // index.ts
 app.use('/api/v1', authRouter);
-app.use(errorHandler);  // Must be AFTER all routes
+app.use(errorHandler); // Must be AFTER all routes
 ```
 
 ---
@@ -534,7 +542,7 @@ const isMatch = await bcrypt.compare(password, user.passwordHash);
 const token = jwt.sign(
   { userId: user._id.toString(), email: user.email },
   env.JWT_SECRET,
-  { expiresIn: '7d' }
+  { expiresIn: '7d' },
 );
 ```
 
@@ -556,6 +564,7 @@ if (!user || !isMatch) {
 ### 4. Input Validation
 
 **Defense in Depth**:
+
 1. TypeScript compile-time type checking
 2. Zod runtime schema validation
 3. MongoDB schema constraints (unique indexes)
@@ -563,7 +572,8 @@ if (!user || !isMatch) {
 ```typescript
 const registerSchema = z.object({
   email: z.string().email('Invalid email'),
-  password: z.string()
+  password: z
+    .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain uppercase')
     .regex(/[0-9]/, 'Must contain number'),
@@ -707,10 +717,7 @@ await ensureUserIndexes();
 // Implemented in repository
 export async function ensureUserIndexes(): Promise<void> {
   const db = await getDb();
-  await db.collection('users').createIndex(
-    { email: 1 },
-    { unique: true }
-  );
+  await db.collection('users').createIndex({ email: 1 }, { unique: true });
 }
 ```
 
@@ -727,6 +734,7 @@ The project uses a **bash-based integration test suite** (`test.sh`) that:
 5. Reports pass/fail with color-coded output
 
 **Test Philosophy**:
+
 - Integration tests over unit tests (test real behavior)
 - Test happy paths AND error cases
 - Validate HTTP status codes AND response structure

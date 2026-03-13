@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 import { env } from '../config/env.js';
 
 const uri = env.MONGODB_URI;
@@ -16,7 +16,10 @@ export async function getMongoClient(): Promise<MongoClient> {
   return client;
 }
 
-export async function getDb() {
-  const client = await getMongoClient();
-  return client.db();
+/**
+ * Returns the default MongoDB database instance from the singleton client.
+ */
+export async function getDb(): Promise<Db> {
+  const mongoClient = await getMongoClient();
+  return mongoClient.db();
 }

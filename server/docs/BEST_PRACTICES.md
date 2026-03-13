@@ -29,7 +29,9 @@ This document outlines the coding standards, conventions, and best practices for
 
 ```typescript
 // Good: Explicit types
-export async function findUserByEmail(email: string): Promise<WithId<IUser> | null> {
+export async function findUserByEmail(
+  email: string,
+): Promise<WithId<IUser> | null> {
   const db = await getDb();
   return db.collection<IUser>('users').findOne({ email });
 }
@@ -61,7 +63,10 @@ async function generateToken(payload: AuthPayload): string {
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
 }
 
-async function registerService(email: string, password: string): Promise<AuthResponse> {
+async function registerService(
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
   const passwordHash = await hashPassword(password);
   const user = await createUser(email, passwordHash);
   const token = await generateToken({ userId: user._id.toString(), email });
@@ -76,7 +81,9 @@ async function registerService(email: string, password: string): Promise<AuthRes
 async function registerService(email: string, password: string) {
   const hash = await bcrypt.hash(password, 12);
   const db = await getDb();
-  const user = await db.collection('users').insertOne({ email, passwordHash: hash });
+  const user = await db
+    .collection('users')
+    .insertOne({ email, passwordHash: hash });
   const token = jwt.sign({ userId: user.insertedId }, 'hardcoded-secret');
   return { token, user };
 }
@@ -93,7 +100,7 @@ Validate inputs and configuration early to surface errors immediately.
 const _env = envSchema.safeParse(process.env);
 if (!_env.success) {
   console.error('❌ Invalid environment variables:', _env.error.format());
-  process.exit(1);  // Fail fast
+  process.exit(1); // Fail fast
 }
 export const env = _env.data;
 ```
@@ -274,14 +281,18 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number.'),
 });
 
-export async function registerController(req: Request, res: Response, next: NextFunction) {
+export async function registerController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const result = registerSchema.safeParse(req.body);
     if (!result.success) {
       throw new AppError(400, result.error.errors[0].message);
     }
-    
-    const { email, password } = result.data;  // Fully typed!
+
+    const { email, password } = result.data; // Fully typed!
     // ...
   } catch (err) {
     next(err);
@@ -295,16 +306,16 @@ export async function registerController(req: Request, res: Response, next: Next
 
 ```typescript
 // Good: Specific, helpful messages
-z.string().min(8, 'Password must be at least 8 characters.')
-z.string().email('Please provide a valid email address.')
+z.string().min(8, 'Password must be at least 8 characters.');
+z.string().email('Please provide a valid email address.');
 ```
 
 ❌ **DON'T**: Use technical jargon or vague messages.
 
 ```typescript
 // Bad: Unhelpful messages
-z.string().min(8, 'Invalid input')
-z.string().email('Error')
+z.string().min(8, 'Invalid input');
+z.string().email('Error');
 ```
 
 ---
@@ -365,12 +376,16 @@ export function errorHandler(
 
 ```typescript
 // Good: Error is caught and delegated
-export async function loginController(req: Request, res: Response, next: NextFunction) {
+export async function loginController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const result = await loginService(email, password);
     res.status(200).json(result);
   } catch (err) {
-    next(err);  // Pass to error handler
+    next(err); // Pass to error handler
   }
 }
 ```
@@ -380,7 +395,7 @@ export async function loginController(req: Request, res: Response, next: NextFun
 ```typescript
 // Bad: Unhandled promise rejection
 export async function loginController(req: Request, res: Response) {
-  const result = await loginService(email, password);  // May throw!
+  const result = await loginService(email, password); // May throw!
   res.status(200).json(result);
 }
 ```
@@ -417,7 +432,7 @@ const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 ```typescript
 // Bad: Weak/no hashing
 const passwordHash = crypto.createHash('md5').update(password).digest('hex');
-const plainPassword = password;  // Never!
+const plainPassword = password; // Never!
 ```
 
 ### Prevent User Enumeration
@@ -451,8 +466,8 @@ if (!isMatch) {
 // Good: Secure JWT
 const token = jwt.sign(
   { userId: user._id.toString(), email: user.email },
-  env.JWT_SECRET,  // Min 32 chars
-  { expiresIn: '7d' }
+  env.JWT_SECRET, // Min 32 chars
+  { expiresIn: '7d' },
 );
 ```
 
@@ -460,7 +475,7 @@ const token = jwt.sign(
 
 ```typescript
 // Bad: Weak security
-const token = jwt.sign(payload, 'secret');  // No expiration!
+const token = jwt.sign(payload, 'secret'); // No expiration!
 ```
 
 ### Input Sanitization
@@ -469,8 +484,8 @@ const token = jwt.sign(payload, 'secret');  // No expiration!
 
 ```typescript
 // Good: Strict validation
-const emailSchema = z.string().email().toLowerCase();  // Normalize
-const passwordSchema = z.string().min(8).max(128);     // Limit length
+const emailSchema = z.string().email().toLowerCase(); // Normalize
+const passwordSchema = z.string().min(8).max(128); // Limit length
 ```
 
 ### Rate Limiting (Planned)
@@ -480,8 +495,8 @@ const passwordSchema = z.string().min(8).max(128);     // Limit length
 import rateLimit from 'express-rate-limit';
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 5,  // 5 requests per window
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per window
   message: 'Too many login attempts, please try again later.',
 });
 
@@ -498,10 +513,13 @@ app.post('/api/v1/login', loginLimiter, loginController);
 
 ```typescript
 // Good: Clear async flow
-async function registerService(email: string, password: string): Promise<AuthResponse> {
+async function registerService(
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
   const existing = await findUserByEmail(email);
   if (existing) throw new AppError(409, 'Email exists');
-  
+
   const hash = await bcrypt.hash(password, 12);
   const user = await createUser(email, hash);
   return formatAuthResponse(user);
@@ -614,7 +632,7 @@ export function registerController() {}
 
 ```typescript
 // Bad: Hard to refactor/discover
-export default function() {}
+export default function () {}
 ```
 
 ---
@@ -698,7 +716,9 @@ console.error('[AuthService] Login failed', {
 
 ```typescript
 // Bad: Hard to parse
-console.log('MongoDB connected to neuramemory with collections: users, memories');
+console.log(
+  'MongoDB connected to neuramemory with collections: users, memories',
+);
 ```
 
 ### Log Levels
@@ -710,9 +730,9 @@ Use appropriate log levels:
 - **error**: Errors requiring attention
 
 ```typescript
-console.log('[Server] Starting on port 3000');  // Info
-console.warn('[MongoDB] Connection slow (>5s)');  // Warning
-console.error('[DB] Failed to connect:', err);   // Error
+console.log('[Server] Starting on port 3000'); // Info
+console.warn('[MongoDB] Connection slow (>5s)'); // Warning
+console.error('[DB] Failed to connect:', err); // Error
 ```
 
 ### Never Log Sensitive Data
@@ -807,10 +827,7 @@ refactor/error-handling
 
 ```typescript
 // Good: Index on unique email
-await db.collection('users').createIndex(
-  { email: 1 },
-  { unique: true }
-);
+await db.collection('users').createIndex({ email: 1 }, { unique: true });
 ```
 
 ### Use Singleton Clients
@@ -835,7 +852,7 @@ export async function getMongoClient() {
 ```typescript
 // Bad: Connection per request
 export async function getUser(id: string) {
-  const client = new MongoClient(uri);  // New connection!
+  const client = new MongoClient(uri); // New connection!
   await client.connect();
   // ...
 }
@@ -848,7 +865,9 @@ Use aggregation or joins instead of loops:
 ```typescript
 // Good: Single query
 const usersWithMemories = await db.collection('users').aggregate([
-  { $lookup: { from: 'memories', localField: '_id', foreignField: 'userId' } }
+  {
+    $lookup: { from: 'memories', localField: '_id', foreignField: 'userId' },
+  },
 ]);
 
 // Bad: N+1 queries
@@ -887,7 +906,7 @@ if (!user) throw new Error();
 ```typescript
 /**
  * Registers a new user account.
- * 
+ *
  * @param email - User's email address (must be unique)
  * @param password - Plain text password (will be hashed with bcrypt)
  * @returns AuthResponse with JWT token and user data

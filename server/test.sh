@@ -25,6 +25,7 @@ FAILED_TESTS=0
 # Default config
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 VERBOSE="${VERBOSE:-false}"
+TEST_RATE_LIMITS="${TEST_RATE_LIMITS:-false}"
 
 # ============================================================================
 # Helper Functions
@@ -213,7 +214,7 @@ preflight_checks() {
 
   # Check if server is reachable
   print_info "Checking server at $BASE_URL..."
-  if curl -s --max-time 5 -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/register" 2>/dev/null | grep -q "^[0-9]*$"; then
+  if curl -s --max-time 5 -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/register" 2>/dev/null | grep -q "^[0-9][0-9][0-9]$"; then
     print_pass "Server is reachable at $BASE_URL"
   else
     print_fail "Server is reachable" "Server responding" "Connection failed"
@@ -307,13 +308,12 @@ test_register_endpoint() {
   assert_json_field "success" "false" "Response should have success=false"
 
   # Test 10: Malformed JSON
-  print_test "Malformed JSON should fail gracefully"
+  print_test "Malformed JSON should return 400"
   make_request "POST" "/api/v1/register" "{invalid json"
-  # Should return 400 or 500, depending on Express error handling
-  if [ "$LAST_RESPONSE_STATUS" = "400" ] || [ "$LAST_RESPONSE_STATUS" = "500" ]; then
+  if [ "$LAST_RESPONSE_STATUS" = "400" ]; then
     print_pass "Malformed JSON handled (HTTP $LAST_RESPONSE_STATUS)"
   else
-    print_fail "Malformed JSON handled" "HTTP 400 or 500" "HTTP $LAST_RESPONSE_STATUS"
+    print_fail "Malformed JSON handled" "HTTP 400" "HTTP $LAST_RESPONSE_STATUS"
   fi
 }
 
@@ -403,6 +403,50 @@ test_login_endpoint() {
   : $((TOTAL_TESTS++))
 }
 
+test_rate_limits() {
+  print_section "Rate Limit Behavior (Optional)"
+
+  if [ "$TEST_RATE_LIMITS" != "true" ]; then
+    print_info "Skipping rate-limit tests (set TEST_RATE_LIMITS=true to enable)"
+    return
+  fi
+
+  print_test "Login endpoint should eventually return 429 under sustained failed attempts"
+  local attempts=0
+  local hit_rate_limit="false"
+
+  while [ $attempts -lt 30 ]; do
+    attempts=$((attempts + 1))
+    make_request "POST" "/api/v1/login" \
+      "{\"email\":\"ratelimit_${TIMESTAMP}@example.com\",\"password\":\"WrongPassword123\"}"
+
+    if [ "$LAST_RESPONSE_STATUS" = "429" ]; then
+      hit_rate_limit="true"
+      break
+    fi
+  done
+
+  if [ "$hit_rate_limit" = "true" ]; then
+    print_pass "Rate limit triggered on login after $attempts attempts (HTTP 429)"
+  else
+    print_fail "Rate limit triggered on login" "HTTP 429 within 30 attempts" "No 429 observed"
+  fi
+
+  if [ "$hit_rate_limit" = "true" ]; then
+    local limit_header
+    limit_header=$(curl -s -D - -o /dev/null -X POST \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"ratelimit_${TIMESTAMP}@example.com\",\"password\":\"WrongPassword123\"}" \
+      "$BASE_URL/api/v1/login" | tr -d '\r' | grep -i '^ratelimit:' | head -n1 || true)
+
+    if [ -n "$limit_header" ]; then
+      print_pass "RateLimit header present ($limit_header)"
+    else
+      print_fail "RateLimit header present" "RateLimit:* header" "Header not found"
+    fi
+  fi
+}
+
 # ============================================================================
 # Test Summary
 # ============================================================================
@@ -438,11 +482,28 @@ main() {
   if [ -f "$(dirname "$0")/.env" ]; then
     print_info "Loading environment from .env file"
     while IFS= read -r line || [ -n "$line" ]; do
-      # Skip empty lines and comments
+      # Skip empty lines and full-line comments
       [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-      # Export the variable (handles special characters safely)
+
+      # Parse KEY=VALUE
       if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-        export "${BASH_REMATCH[1]}=${BASH_REMATCH[2]}"
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
+
+        # Remove inline comments for unquoted values (e.g. JWT_EXPIRES_IN=7d # note)
+        if [[ ! "$value" =~ ^\".*\"$ && ! "$value" =~ ^\'.*\'$ ]]; then
+          value="$(printf '%s' "$value" | sed 's/[[:space:]]#.*$//')"
+          value="$(printf '%s' "$value" | sed 's/[[:space:]]*$//')"
+        fi
+
+        # Strip wrapping quotes if present
+        if [[ "$value" =~ ^\"(.*)\"$ ]]; then
+          value="${BASH_REMATCH[1]}"
+        elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
+          value="${BASH_REMATCH[1]}"
+        fi
+
+        export "${key}=${value}"
       fi
     done < "$(dirname "$0")/.env"
   fi
@@ -453,6 +514,7 @@ main() {
   # Run all endpoint tests
   test_register_endpoint
   test_login_endpoint
+  test_rate_limits
 
   # Print final summary
   print_summary

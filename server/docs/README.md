@@ -5,21 +5,25 @@ This is the backend server for NeuraMemory-AI, an AI-powered "second brain" know
 ## Tech Stack
 
 ### Core
+
 - **Runtime**: Node.js ≥24.0.0 (ESM)
 - **Language**: [TypeScript](https://www.typescriptlang.org/) 5.9+ (Target: ESNext, strict mode)
 - **Framework**: [Express.js](https://expressjs.com/) 4.x
 
 ### Data & AI
+
 - **Document Database**: [MongoDB](https://www.mongodb.com/) 7.x
 - **Vector Database**: [Qdrant](https://qdrant.tech/) (via `@qdrant/js-client-rest`)
 - **LLM Gateway**: [OpenRouter](https://openrouter.ai/) (via OpenAI SDK)
 
 ### Security & Validation
+
 - **Schema Validation**: [Zod](https://zod.dev/) 3.x
 - **Password Hashing**: bcryptjs (12 rounds)
 - **Authentication**: JSON Web Tokens (jsonwebtoken)
 
 ### Development Tools
+
 - **Dev Runner**: [tsx](https://tsx.is/) (watch mode with auto-reload)
 - **Build**: TypeScript Compiler (tsc)
 - **Linting**: [ESLint](https://eslint.org/) 10.x (Flat Config with TypeScript)
@@ -152,6 +156,7 @@ npm run format
 Register a new user account.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -160,6 +165,7 @@ Register a new user account.
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -173,6 +179,7 @@ Register a new user account.
 ```
 
 **Password Requirements:**
+
 - Minimum 8 characters
 - At least one uppercase letter
 - At least one number
@@ -182,6 +189,7 @@ Register a new user account.
 Authenticate an existing user.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -190,6 +198,7 @@ Authenticate an existing user.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -214,6 +223,7 @@ All endpoints return a consistent error format:
 ```
 
 **Common Status Codes:**
+
 - `400` - Bad Request (validation error)
 - `401` - Unauthorized (invalid credentials)
 - `409` - Conflict (duplicate email)
@@ -258,6 +268,7 @@ VERBOSE=true ./test.sh
 The test suite includes **47 test cases** covering:
 
 **Registration Tests (24):**
+
 - ✅ Valid registration with strong password
 - ✅ Duplicate email detection
 - ✅ Email format validation
@@ -266,6 +277,7 @@ The test suite includes **47 test cases** covering:
 - ✅ Malformed JSON handling
 
 **Login Tests (23):**
+
 - ✅ Successful authentication
 - ✅ JWT token generation
 - ✅ Wrong password rejection
@@ -311,6 +323,7 @@ See the root `docker-compose.yml` for a complete stack setup including MongoDB, 
 ## Current Implementation Status
 
 ### ✅ Completed
+
 - [x] Environment variable validation
 - [x] MongoDB connection and user repository
 - [x] Authentication system (register/login)
@@ -322,6 +335,7 @@ See the root `docker-compose.yml` for a complete stack setup including MongoDB, 
 - [x] Docker containerization
 
 ### 🚧 Planned
+
 - [ ] Protected routes with JWT middleware
 - [ ] Memory upload endpoints
 - [ ] Vector embeddings with OpenRouter

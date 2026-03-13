@@ -32,11 +32,13 @@ All endpoints are prefixed with `/api/v1`.
 ## Base URL
 
 ### Development
+
 ```
 http://localhost:3000
 ```
 
 ### Production
+
 ```
 https://api.neuramemory.ai
 ```
@@ -174,10 +176,10 @@ Register a new user account.
 
 **Request Body**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | Yes | Valid email address |
-| `password` | string | Yes | Password (min 8 chars, 1 uppercase, 1 number) |
+| Field      | Type   | Required | Description                                   |
+| ---------- | ------ | -------- | --------------------------------------------- |
+| `email`    | string | Yes      | Valid email address                           |
+| `password` | string | Yes      | Password (min 8 chars, 1 uppercase, 1 number) |
 
 **Password Requirements**
 
@@ -212,13 +214,13 @@ curl -X POST http://localhost:3000/api/v1/register \
 
 **Error Responses**
 
-| Status | Message | Condition |
-|--------|---------|-----------|
-| `400` | "Please provide a valid email address." | Invalid email format |
-| `400` | "Password must be at least 8 characters." | Password too short |
-| `400` | "Password must contain at least one uppercase letter." | Missing uppercase |
-| `400` | "Password must contain at least one number." | Missing number |
-| `409` | "An account with this email already exists." | Email already registered |
+| Status | Message                                                | Condition                |
+| ------ | ------------------------------------------------------ | ------------------------ |
+| `400`  | "Please provide a valid email address."                | Invalid email format     |
+| `400`  | "Password must be at least 8 characters."              | Password too short       |
+| `400`  | "Password must contain at least one uppercase letter." | Missing uppercase        |
+| `400`  | "Password must contain at least one number."           | Missing number           |
+| `409`  | "An account with this email already exists."           | Email already registered |
 
 ---
 
@@ -228,10 +230,10 @@ Authenticate an existing user and receive a JWT token.
 
 **Request Body**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | Yes | Registered email address |
-| `password` | string | Yes | Account password |
+| Field      | Type   | Required | Description              |
+| ---------- | ------ | -------- | ------------------------ |
+| `email`    | string | Yes      | Registered email address |
+| `password` | string | Yes      | Account password         |
 
 **Example Request**
 
@@ -260,11 +262,11 @@ curl -X POST http://localhost:3000/api/v1/login \
 
 **Error Responses**
 
-| Status | Message | Condition |
-|--------|---------|-----------|
-| `400` | "Please provide a valid email address." | Invalid email format |
-| `400` | "Password is required." | Missing password |
-| `401` | "Invalid email or password." | Wrong credentials or user not found |
+| Status | Message                                 | Condition                           |
+| ------ | --------------------------------------- | ----------------------------------- |
+| `400`  | "Please provide a valid email address." | Invalid email format                |
+| `400`  | "Password is required."                 | Missing password                    |
+| `401`  | "Invalid email or password."            | Wrong credentials or user not found |
 
 **Security Note**: The error message is intentionally generic ("Invalid email or password") for both non-existent users and wrong passwords to prevent email enumeration attacks.
 
@@ -277,31 +279,39 @@ The following endpoints are planned for future releases:
 ### Memory Management
 
 #### POST `/api/v1/memories`
+
 Upload a new memory/note to the system.
 
 #### GET `/api/v1/memories`
+
 Retrieve all memories for the authenticated user.
 
 #### GET `/api/v1/memories/:id`
+
 Retrieve a specific memory by ID.
 
 #### DELETE `/api/v1/memories/:id`
+
 Delete a specific memory.
 
 ### Search
 
 #### POST `/api/v1/search`
+
 Perform semantic search across user's memories using natural language queries.
 
 ### User Management
 
 #### GET `/api/v1/user/profile`
+
 Get the authenticated user's profile.
 
 #### PATCH `/api/v1/user/profile`
+
 Update user profile information.
 
 #### DELETE `/api/v1/user/account`
+
 Delete user account and all associated data.
 
 ---
@@ -322,6 +332,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -346,6 +357,7 @@ curl -X POST http://localhost:3000/api/v1/login \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -372,6 +384,7 @@ curl -X GET http://localhost:3000/api/v1/memories \
 #### Invalid Email Format
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/register \
   -H "Content-Type: application/json" \
@@ -382,6 +395,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 ```
 
 **Response** (`400`):
+
 ```json
 {
   "success": false,
@@ -392,6 +406,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 #### Weak Password
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/register \
   -H "Content-Type: application/json" \
@@ -402,6 +417,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 ```
 
 **Response** (`400`):
+
 ```json
 {
   "success": false,
@@ -412,6 +428,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 #### Duplicate Email
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/register \
   -H "Content-Type: application/json" \
@@ -422,6 +439,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 ```
 
 **Response** (`409`):
+
 ```json
 {
   "success": false,
@@ -432,6 +450,7 @@ curl -X POST http://localhost:3000/api/v1/register \
 #### Invalid Credentials
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/login \
   -H "Content-Type: application/json" \
@@ -442,6 +461,7 @@ curl -X POST http://localhost:3000/api/v1/login \
 ```
 
 **Response** (`401`):
+
 ```json
 {
   "success": false,
@@ -455,17 +475,17 @@ curl -X POST http://localhost:3000/api/v1/login \
 
 The API uses standard HTTP status codes:
 
-| Code | Meaning | Usage |
-|------|---------|-------|
-| `200` | OK | Successful request (general) |
-| `201` | Created | Resource created successfully |
-| `400` | Bad Request | Invalid input or validation error |
-| `401` | Unauthorized | Authentication failed or missing |
-| `403` | Forbidden | Authenticated but not authorized |
-| `404` | Not Found | Resource does not exist |
-| `409` | Conflict | Resource already exists |
-| `429` | Too Many Requests | Rate limit exceeded |
-| `500` | Internal Server Error | Unexpected server error |
+| Code  | Meaning               | Usage                             |
+| ----- | --------------------- | --------------------------------- |
+| `200` | OK                    | Successful request (general)      |
+| `201` | Created               | Resource created successfully     |
+| `400` | Bad Request           | Invalid input or validation error |
+| `401` | Unauthorized          | Authentication failed or missing  |
+| `403` | Forbidden             | Authenticated but not authorized  |
+| `404` | Not Found             | Resource does not exist           |
+| `409` | Conflict              | Resource already exists           |
+| `429` | Too Many Requests     | Rate limit exceeded               |
+| `500` | Internal Server Error | Unexpected server error           |
 
 ---
 
@@ -482,12 +502,12 @@ The JWT token returned by `/register` and `/login` contains the following payloa
 }
 ```
 
-| Field | Description |
-|-------|-------------|
+| Field    | Description                  |
+| -------- | ---------------------------- |
 | `userId` | MongoDB ObjectId of the user |
-| `email` | User's email address |
-| `iat` | Issued at timestamp (Unix) |
-| `exp` | Expiration timestamp (Unix) |
+| `email`  | User's email address         |
+| `iat`    | Issued at timestamp (Unix)   |
+| `exp`    | Expiration timestamp (Unix)  |
 
 **Decode Token**: You can decode the token at [jwt.io](https://jwt.io) to inspect the payload.
 

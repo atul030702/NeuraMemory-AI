@@ -1,19 +1,95 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import {
-  findUserByEmail,
   createUser,
+  findUserByEmail,
 } from '../repositories/user.repository.js';
-import { AppError } from '../utils/AppError.js';
 import { AuthPayload, AuthResponse } from '../types/auth.types.js';
+import { AppError } from '../utils/AppError.js';
 
 const SALT_ROUNDS = 12;
+const INVALID_CREDENTIALS_MESSAGE = 'Invalid email or password.';
 
-function generateToken(payload: AuthPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN,
-  } as jwt.SignOptions);
+/**
+ * Hashes a plaintext password using bcrypt.
+ */
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+/**
+ * Compares plaintext password against a bcrypt hash.
+ */
+async function verifyPassword(
+  plainTextPassword: string,
+  passwordHash: string,
+): Promise<boolean> {
+  return bcrypt.compare(plainTextPassword, passwordHash);
+}
+
+/**
+ * Signs and returns a JWT token for auth payload.
+ */
+function signAuthToken(payload: AuthPayload): string {
+  const options: SignOptions = {};
+  const expiresIn = env.JWT_EXPIRES_IN as SignOptions['expiresIn'];
+
+  if (expiresIn !== undefined) {
+    options.expiresIn = expiresIn;
+  }
+
+  return jwt.sign(payload, env.JWT_SECRET, options);
+}
+
+/**
+ * Builds a standard auth response structure.
+ */
+function buildAuthResponse(
+  message: string,
+  user: { id: string; email: string },
+): AuthResponse {
+  const token = signAuthToken({
+    userId: user.id,
+    email: user.email,
+  });
+
+  return {
+    success: true,
+    message,
+    token,
+    user,
+  };
+}
+
+/**
+ * Logs structured auth errors without leaking sensitive secrets.
+ */
+function logAuthError(
+  operation: 'register' | 'login',
+  email: string,
+  err: unknown,
+): void {
+  const now = new Date().toISOString();
+
+  if (err instanceof Error) {
+    console.error(`[AuthService] ${operation} failed`, {
+      operation,
+      email,
+      reason: err.message,
+      timestamp: now,
+      stack: err.stack,
+    });
+    return;
+  }
+
+  console.error(`[AuthService] ${operation} failed`, {
+    operation,
+    email,
+    reason: 'Unknown error',
+    timestamp: now,
+    error: String(err),
+  });
 }
 
 /**
@@ -27,65 +103,58 @@ export async function registerService(
   email: string,
   password: string,
 ): Promise<AuthResponse> {
-  const existing = await findUserByEmail(email);
-  if (existing) {
-    throw new AppError(409, 'An account with this email already exists.');
+  try {
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      throw new AppError(409, 'An account with this email already exists.');
+    }
+
+    const passwordHash = await hashPassword(password);
+    const createdUser = await createUser(email, passwordHash);
+
+    return buildAuthResponse('Account created successfully.', {
+      id: createdUser._id.toString(),
+      email: createdUser.email,
+    });
+  } catch (err) {
+    logAuthError('register', email, err);
+    throw err;
   }
-
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-  const user = await createUser(email, passwordHash);
-
-  const token = generateToken({
-    userId: user._id.toString(),
-    email: user.email,
-  });
-
-  return {
-    success: true,
-    message: 'Account created successfully.',
-    token,
-    user: {
-      id: user._id.toString(),
-      email: user.email,
-    },
-  };
 }
 
 /**
  * Authenticates an existing user.
  * - Looks up the user by email
- * - Compares the provided password against the stored hash
+ * - Compares provided password against the stored hash
  * - Returns a signed JWT on success
  *
- * A generic error message is used for both "not found" and "wrong password"
- * to avoid leaking which condition failed (user enumeration protection).
+ * Uses a generic error message for both "user not found" and "wrong password"
+ * to avoid user enumeration.
  */
 export async function loginService(
   email: string,
   password: string,
 ): Promise<AuthResponse> {
-  const user = await findUserByEmail(email);
-  if (!user) {
-    throw new AppError(401, 'Invalid email or password.');
+  try {
+    const existingUser = await findUserByEmail(email);
+    if (!existingUser) {
+      throw new AppError(401, INVALID_CREDENTIALS_MESSAGE);
+    }
+
+    const isPasswordValid = await verifyPassword(
+      password,
+      existingUser.passwordHash,
+    );
+    if (!isPasswordValid) {
+      throw new AppError(401, INVALID_CREDENTIALS_MESSAGE);
+    }
+
+    return buildAuthResponse('Login successful.', {
+      id: existingUser._id.toString(),
+      email: existingUser.email,
+    });
+  } catch (err) {
+    logAuthError('login', email, err);
+    throw err;
   }
-
-  const isMatch = await bcrypt.compare(password, user.passwordHash);
-  if (!isMatch) {
-    throw new AppError(401, 'Invalid email or password.');
-  }
-
-  const token = generateToken({
-    userId: user._id.toString(),
-    email: user.email,
-  });
-
-  return {
-    success: true,
-    message: 'Login successful.',
-    token,
-    user: {
-      id: user._id.toString(),
-      email: user.email,
-    },
-  };
 }
