@@ -75,43 +75,133 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 You'll need to have the following software installed on your system.
 
-*   **Node.js and npm**
+*   **Node.js and npm** (for local development)
     ```sh
     npm install npm@latest -g
     ```
 
+*   **Docker and Docker Compose** (for containerized deployment)
+    ```sh
+    docker --version
+    docker compose version
+    ```
+
 ### Installation
+
+Choose either Docker (recommended) or local installation:
+
+#### Option 1: Docker Deployment (Recommended)
 
 1.  **Clone the repository**
     ```sh
-    git clone https://github.com/[Your GitHub Username]/NeuraMemory-AI.git
+    git clone https://github.com/Gautam7352/NeuraMemory-AI.git
     cd NeuraMemory-AI
     ```
-2.  **Install NPM packages**
+
+2.  **Configure environment variables**
     ```sh
+    cp server/.env.example server/.env
+    # Edit server/.env with your API keys and settings
+    ```
+
+3.  **Start all services**
+    ```sh
+    # Production
+    docker compose up -d
+
+    # Development (with hot-reload)
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+    ```
+
+4.  **Access the application**
+    - Frontend: http://localhost:5173
+    - API: http://localhost:3000
+
+See [DOCKER.md](DOCKER.md) for complete Docker deployment guide.
+
+#### Option 2: Local Installation
+
+1.  **Clone the repository**
+    ```sh
+    git clone https://github.com/Gautam7352/NeuraMemory-AI.git
+    cd NeuraMemory-AI
+    ```
+
+2.  **Install server dependencies**
+    ```sh
+    cd server
     npm install
     ```
-3.  **Configure Environment Variables**
-    Create a `.env` file in the root directory and add the necessary API keys and configuration.
+
+3.  **Install client dependencies**
+    ```sh
+    cd ../client
+    npm install
+    ```
+
+4.  **Configure Environment Variables**
+    Create `server/.env` with required configuration:
     ```env
-    OPENAI_API_KEY='YOUR_API_KEY'
-    DATABASE_URL='YOUR_DATABASE_URL'
+    MONGODB_URI=mongodb://localhost:27017/neuramemory
+    QDRANT_URL=http://localhost:6333
+    OPENROUTER_API_KEY=your-api-key
+    JWT_SECRET=random-string-at-least-32-characters
+    ```
+
+5.  **Start MongoDB and Qdrant** (required)
+    ```sh
+    # Using Docker
+    docker compose up -d mongodb qdrant
     ```
 
 ---
 
 ## Usage
 
-Once the installation is complete, you can run the application.
+### Running with Docker
+
+```sh
+# Start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+```
+
+### Running Locally
 
 1.  **Start the Backend Server**
     ```sh
-    npm start
+    cd server
+    npm run dev
     ```
 
-Open your browser and navigate to `http://localhost:3000` to see the application in action.
+2.  **Start the Frontend** (in another terminal)
+    ```sh
+    cd client
+    npm run dev
+    ```
 
-*For more examples and detailed usage, please refer to the [Documentation]([Link to your documentation])*.
+3.  **Access the application**
+    - Frontend: http://localhost:5173
+    - API: http://localhost:3000
+
+### Testing the API
+
+Run the comprehensive test suite:
+
+```sh
+cd server
+./test.sh
+```
+
+For more details, see:
+- [Server Documentation](server/docs/README.md)
+- [API Documentation](server/docs/API.md)
+- [Docker Guide](DOCKER.md)
 
 ---
 
