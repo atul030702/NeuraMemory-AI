@@ -31,6 +31,5 @@ Clone the repository and install dependencies.
 - Using npm: `npm install`
 
 - Start the local development server.
-
   - Using pnpm: `pnpm dev`
   - Using npm: `npm run dev`
