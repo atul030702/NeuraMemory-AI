@@ -1,4 +1,5 @@
 # NeuraMemory-AI
+
 ## {Need to be updated after v0 is done}
 
 <div align="center">
@@ -51,19 +52,19 @@ Whether you're a student, a researcher, or a lifelong learner, NeuraMemory-AI is
 
 ### Key Features:
 
-*   **Intelligent Note-Taking:** Capture thoughts and ideas in natural language.
-*   **Automatic Organization:** The AI automatically tags, categorizes, and links related notes.
-*   **Semantic Search:** Find information based on meaning and context, not just keywords.
-*   **Knowledge Graph:** Visualize the connections between your ideas.
-*   **Personalized Summaries:** Get AI-generated summaries of your notes and documents.
+- **Intelligent Note-Taking:** Capture thoughts and ideas in natural language.
+- **Automatic Organization:** The AI automatically tags, categorizes, and links related notes.
+- **Semantic Search:** Find information based on meaning and context, not just keywords.
+- **Knowledge Graph:** Visualize the connections between your ideas.
+- **Personalized Summaries:** Get AI-generated summaries of your notes and documents.
 
 ### Built With
 
 This project is built with a modern stack of technologies to deliver a robust and scalable solution.
 
-*   [![TypeScript][TypeScript.org]][TypeScript-url]
-*   [![Node.js][Node.js.org]][Node.js-url]
-*   [![Express.js][Express.js.org]][Express-url]
+- [![TypeScript][TypeScript.org]][TypeScript-url]
+- [![Node.js][Node.js.org]][Node.js-url]
+- [![Express.js][Express.js.org]][Express-url]
 
 ---
 
@@ -75,16 +76,17 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 You'll need to have the following software installed on your system.
 
-*   **Node.js and npm** (for local development)
-    ```sh
-    npm install npm@latest -g
-    ```
+- **Node.js and npm** (for local development)
 
-*   **Docker and Docker Compose** (for containerized deployment)
-    ```sh
-    docker --version
-    docker compose version
-    ```
+  ```sh
+  npm install npm@latest -g
+  ```
+
+- **Docker and Docker Compose** (for containerized deployment)
+  ```sh
+  docker --version
+  docker compose version
+  ```
 
 ### Installation
 
@@ -93,18 +95,21 @@ Choose either Docker (recommended) or local installation:
 #### Option 1: Docker Deployment (Recommended)
 
 1.  **Clone the repository**
+
     ```sh
     git clone https://github.com/Gautam7352/NeuraMemory-AI.git
     cd NeuraMemory-AI
     ```
 
 2.  **Configure environment variables**
+
     ```sh
     cp server/.env.example server/.env
     # Edit server/.env with your API keys and settings
     ```
 
 3.  **Start all services**
+
     ```sh
     # Production
     docker compose up -d
@@ -122,18 +127,21 @@ See [DOCKER.md](DOCKER.md) for complete Docker deployment guide.
 #### Option 2: Local Installation
 
 1.  **Clone the repository**
+
     ```sh
     git clone https://github.com/Gautam7352/NeuraMemory-AI.git
     cd NeuraMemory-AI
     ```
 
 2.  **Install server dependencies**
+
     ```sh
     cd server
     npm install
     ```
 
 3.  **Install client dependencies**
+
     ```sh
     cd ../client
     npm install
@@ -141,6 +149,7 @@ See [DOCKER.md](DOCKER.md) for complete Docker deployment guide.
 
 4.  **Configure Environment Variables**
     Create `server/.env` with required configuration:
+
     ```env
     MONGODB_URI=mongodb://localhost:27017/neuramemory
     QDRANT_URL=http://localhost:6333
@@ -174,12 +183,14 @@ docker compose down
 ### Running Locally
 
 1.  **Start the Backend Server**
+
     ```sh
     cd server
     npm run dev
     ```
 
 2.  **Start the Frontend** (in another terminal)
+
     ```sh
     cd client
     npm run dev
@@ -199,6 +210,7 @@ cd server
 ```
 
 For more details, see:
+
 - [Server Documentation](server/docs/README.md)
 - [API Documentation](server/docs/API.md)
 - [Docker Guide](DOCKER.md)
@@ -252,12 +264,13 @@ Project Link: [https://github.com/[Your GitHub Username]/NeuraMemory-AI](https:/
 
 A project of this scale wouldn't be possible without the incredible work of others. We'd like to thank:
 
-*   Awesome README Templates
-*   Img Shields
-*   Font Awesome
-*   [All contributors and supporters of this project]
+- Awesome README Templates
+- Img Shields
+- Font Awesome
+- [All contributors and supporters of this project]
 
 <!-- MARKDOWN LINKS & IMAGES -->
+
 [product-screenshot]: images/screenshot.png
 [TypeScript.org]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
 [TypeScript-url]: https://www.typescriptlang.org/
@@ -265,3 +278,5 @@ A project of this scale wouldn't be possible without the incredible work of othe
 [Node.js-url]: https://nodejs.org/
 [Express.js.org]: https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white
 [Express-url]: http://expressjs.com/
+
+https://www.npmjs.com/package/unstructured-client

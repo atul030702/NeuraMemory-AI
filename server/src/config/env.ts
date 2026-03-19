@@ -17,6 +17,7 @@ const envSchema = z.object({
   OPENROUTER_TITLE: z.string().optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('7d'),
+  FIRECRAWL_API_KEY: z.string()
 });
 
 const _env = envSchema.safeParse(process.env);

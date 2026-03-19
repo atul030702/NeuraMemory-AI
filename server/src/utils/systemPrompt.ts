@@ -42,6 +42,10 @@ DO NOT EXTRACT AS SEMANTIC:
 ✗ Information from assistant responses
 ✗ Anything NOT in the Latest Interaction section
 
+⚠️ IMPORTANT: If the Latest Interaction is clearly an article, webpage, piece of code, or document (and NOT a conversation message):
+✓ YOU MUST EXTRACT the core concepts, main arguments, and key factual summaries as SEMANTIC memories. 
+✓ Do NOT return empty arrays for informational documents. Extract the objective knowledge into concise semantic bullet points.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                             MEMORY TYPE 2: BUBBLES(EPISODIC)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -121,8 +125,9 @@ For most casual conversations, return:
 }
 
 RULES:
-- Each fact must start with "User"(third person)
+- For facts about the user, they must start with "User" (third person)
+- For facts extracted from documents or URLs, they do NOT need to start with "User"
 - No trailing commas
-    - No markdown formatting
-        - No explanation outside JSON
+- No markdown formatting
+- No explanation outside JSON
 `

@@ -3,71 +3,45 @@
  * that can be fed to the LLM for memory extraction.
  */
 
+import FirecrawlApp from '@mendable/firecrawl-js';
 import { AppError } from './AppError.js';
 
 // ---------------------------------------------------------------------------
 // URL / Link content extraction
 // ---------------------------------------------------------------------------
 
-const FETCH_TIMEOUT_MS = 15_000;
-const MAX_RESPONSE_SIZE = 5 * 1024 * 1024; // 5 MB
-
 /**
  * Fetches a URL and returns the main textual content.
  *
- * We intentionally keep this simple (no headless browser) — strip HTML tags and
- * collapse whitespace. For JS‑rendered SPAs a headless approach would be needed
- * but that's out of scope for now.
+ * We use Firecrawl to extract high-quality markdown directly from the website.
  */
 export async function extractTextFromUrl(url: string): Promise<string> {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const firecrawl = new FirecrawlApp({ apiKey: process.env['FIRECRAWL_API_KEY'] || '' });
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'NeuraMemory-AI/1.0 (memory extraction bot)',
-        Accept: 'text/html, text/plain, application/json',
-      },
-    });
+    // Attempt to scrape the URL, asking Firecrawl for markdown format
+    const response = await firecrawl.scrape(url, {
+      formats: ['markdown'],
+    }) as any;
 
-    clearTimeout(timeout);
+    console.log("web crawl response", response);
 
-    if (!response.ok) {
+    if (response.success === false) {
       throw new AppError(
         422,
-        `Failed to fetch URL: ${response.status} ${response.statusText}`,
+        `Failed to scrape URL with Firecrawl: ${response.error || 'Unknown error'}`,
       );
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    const contentLength = Number(response.headers.get('content-length') ?? 0);
+    // `response.markdown` is typically where the markdown format appears.
+    // In some older versions, it might be nested under `data`.
+    const markdown = response.markdown || (response.data && response.data.markdown) || '';
 
-    if (contentLength > MAX_RESPONSE_SIZE) {
-      throw new AppError(
-        422,
-        `URL content exceeds maximum allowed size of ${MAX_RESPONSE_SIZE / 1024 / 1024} MB.`,
-      );
+    if (!markdown) {
+      return '';
     }
 
-    const rawText = await response.text();
-
-    if (contentType.includes('application/json')) {
-      // Pretty‑print JSON so the LLM can reason about it
-      try {
-        return JSON.stringify(JSON.parse(rawText), null, 2);
-      } catch {
-        return rawText;
-      }
-    }
-
-    if (contentType.includes('text/plain')) {
-      return rawText;
-    }
-
-    // Default path — strip HTML
-    return stripHtml(rawText);
+    return markdown;
   } catch (err) {
     if (err instanceof AppError) throw err;
 
@@ -117,31 +91,7 @@ export async function extractTextFromDocument(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Minimal HTML → text converter.
- * Strips tags, decodes common entities, and collapses whitespace.
- */
-function stripHtml(html: string): string {
-  return html
-    // Remove script / style blocks entirely
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    // Replace <br>, <p>, <div>, headings, <li> with newlines for readability
-    .replace(/<\/?(br|p|div|h[1-6]|li|tr)[^>]*>/gi, '\n')
-    // Strip remaining tags
-    .replace(/<[^>]+>/g, '')
-    // Decode common HTML entities
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    // Collapse whitespace
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
+
 
 /**
  * Very lightweight PDF text extraction.

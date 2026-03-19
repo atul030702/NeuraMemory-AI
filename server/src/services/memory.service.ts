@@ -146,6 +146,7 @@ export async function processLink(
   input: LinkInput,
 ): Promise<MemoryResponse> {
   const text = await extractTextFromUrl(input.url);
+  console.log("TEXT: ", text)
   return processText(text, input.userId, 'link', input.url);
 }
 

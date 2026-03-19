@@ -37,7 +37,7 @@ prod-ps: ## Show production service status
 ##@ Development
 
 dev: ## Start development environment with hot-reload
-	docker compose $(DEV_COMPOSE_FILES) up
+	docker compose $(DEV_COMPOSE_FILES) up --build
 
 dev-build: ## Build development images
 	docker compose $(DEV_COMPOSE_FILES) build
