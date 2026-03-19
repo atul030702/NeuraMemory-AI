@@ -17,6 +17,15 @@ const envSchema = z.object({
   OPENROUTER_TITLE: z.string().optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('7d'),
+  UNSTRUCTURED_API_URL: z
+    .string()
+    .url()
+    .default('https://platform.unstructuredapp.io/api/v1'),
+  UNSTRUCTURED_API_KEY: z.string().min(1).optional(),
+  UNSTRUCTURED_TIMEOUT_MS: z.string().optional(),
+  OCR_ENABLE_LOCAL_FALLBACK: z.string().default('true'),
+  OCR_TESSERACT_LANG: z.string().default('eng'),
+  OCR_FORCE: z.string().default('false'),
 });
 
 const _env = envSchema.safeParse(process.env);

@@ -22,6 +22,9 @@ API="${BASE_URL}/api/v1"
 TEST_EMAIL="${TEST_EMAIL:-testuser_$(date +%s)@neuramemory.test}"
 TEST_PASSWORD="${TEST_PASSWORD:-TestPass123}"
 TOKEN=""
+RUN_OCR_SMOKE="${RUN_OCR_SMOKE:-false}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OCR_FIXTURE_PDF="${SCRIPT_DIR}/test/fixtures/ocr-smoke.pdf"
 
 # Colors
 RED='\033[0;31m'
@@ -303,6 +306,22 @@ print_response
 assert_status "201" "Create memory from TXT document"
 
 rm -f "$TMP_FILE"
+
+# OCR smoke test (local fallback)
+print_test "POST /api/v1/memories/document — OCR smoke test (local fallback)"
+if [ "$RUN_OCR_SMOKE" != "true" ]; then
+  echo "  Skipping OCR smoke test (set RUN_OCR_SMOKE=true and start server with OCR_FORCE=true)."
+else
+  if [ ! -f "$OCR_FIXTURE_PDF" ]; then
+    print_fail "OCR fixture exists" "Fixture PDF present" "Missing: $OCR_FIXTURE_PDF"
+  else
+    do_request POST "${API}/memories/document" \
+      -H "$AUTH_HEADER" \
+      -F "file=@${OCR_FIXTURE_PDF};type=application/pdf"
+    print_response
+    assert_status "201" "Create memory from OCR fixture PDF"
+  fi
+fi
 
 # ── 3.9 POST /memories/document — No file ───────────────────────────────────
 print_test "POST /api/v1/memories/document — no file attached"

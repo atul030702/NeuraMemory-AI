@@ -17,6 +17,9 @@ FROM node:24-alpine AS runner
 
 WORKDIR /app
 
+# Install OCR dependencies (pdftoppm + tesseract)
+RUN apk add --no-cache poppler-utils tesseract-ocr tesseract-ocr-data-eng ttf-dejavu
+
 # Install only production dependencies
 COPY package*.json ./
 RUN npm ci --omit=dev

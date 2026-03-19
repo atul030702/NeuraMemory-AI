@@ -135,7 +135,11 @@ export async function processPlainText(
 export async function processDocument(
   input: DocumentInput,
 ): Promise<MemoryResponse> {
-  const text = await extractTextFromDocument(input.buffer, input.mimetype);
+  const text = await extractTextFromDocument(
+    input.buffer,
+    input.mimetype,
+    input.filename,
+  );
   return processText(text, input.userId, 'document', input.filename);
 }
 

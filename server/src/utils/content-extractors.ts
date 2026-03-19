@@ -3,7 +3,11 @@
  * that can be fed to the LLM for memory extraction.
  */
 
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { env } from '../config/env.js';
+import { extractTextWithUnstructured, isUnstructuredConfigured } from '../lib/unstructured.js';
 import { AppError } from './AppError.js';
+import { extractTextWithLocalOcr } from './ocr-local.js';
 
 // ---------------------------------------------------------------------------
 // URL / Link content extraction
@@ -93,6 +97,7 @@ export async function extractTextFromUrl(url: string): Promise<string> {
 export async function extractTextFromDocument(
   buffer: Buffer,
   mimetype: string,
+  filename = 'document.pdf',
 ): Promise<string> {
   switch (mimetype) {
     case 'text/plain':
@@ -100,7 +105,7 @@ export async function extractTextFromDocument(
       return buffer.toString('utf-8');
 
     case 'application/pdf':
-      return extractTextFromPdfBuffer(buffer);
+      return extractTextFromPdfBuffer(buffer, filename);
 
     case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
       return extractTextFromDocxBuffer(buffer);
@@ -144,58 +149,110 @@ function stripHtml(html: string): string {
 }
 
 /**
- * Very lightweight PDF text extraction.
+ * PDF text extraction with OCR fallback.
  *
- * PDF files store text in stream objects between `BT` (Begin Text) and `ET`
- * (End Text) markers. Text‑showing operators like `Tj`, `TJ`, `'`, and `"`
- * carry the actual string content inside parentheses `(…)`.
- *
- * This extractor:
- * 1. Converts the raw buffer to a latin‑1 string (PDFs are byte‑oriented).
- * 2. Finds all `BT … ET` blocks.
- * 3. Inside each block, captures strings enclosed in `(…)`.
- * 4. Joins everything with spaces / newlines.
- *
- * Limitations:
- * - Only works with PDFs whose text layer is NOT compressed (FlateDecode, etc.).
- * - Scanned / image‑only PDFs will return empty text.
- * - Complex encodings (CIDFont, ToUnicode CMaps) are not decoded.
- *
- * For production‑grade extraction, swap this with `pdf-parse` or `pdfjs-dist`.
+ * 1) Try pdfjs-dist for text-based PDFs.
+ * 2) If empty, try Unstructured OCR async jobs.
+ * 3) If that fails and local OCR is enabled, run tesseract on rasterized pages.
  */
-function extractTextFromPdfBuffer(buffer: Buffer): string {
-  const raw = buffer.toString('latin1');
-
-  const textBlocks: string[] = [];
-  const btEtRegex = /BT\s([\s\S]*?)ET/g;
-  let blockMatch: RegExpExecArray | null;
-
-  while ((blockMatch = btEtRegex.exec(raw)) !== null) {
-    const block = blockMatch[1];
-    if (!block) continue;
-
-    // Match strings inside parentheses — the text operands of Tj / TJ / ' / "
-    const stringRegex = /\(([^)]*)\)/g;
-    let strMatch: RegExpExecArray | null;
-
-    while ((strMatch = stringRegex.exec(block)) !== null) {
-      const decoded = strMatch[1];
-      if (decoded) {
-        textBlocks.push(decoded);
+async function extractTextFromPdfBuffer(
+  buffer: Buffer,
+  filename: string,
+): Promise<string> {
+  if (!isOcrForced()) {
+    try {
+      const text = await extractTextWithPdfJs(buffer);
+      if (text) {
+        return text;
       }
+    } catch (err) {
+      console.warn('[PDF] pdfjs-dist extraction failed:', err);
     }
   }
 
-  const text = textBlocks.join(' ').trim();
-
-  if (!text) {
-    throw new AppError(
-      422,
-      'Could not extract text from the PDF. The file may be scanned/image‑based or use compressed text streams. Please provide a text‑based PDF.',
-    );
+  if (isUnstructuredConfigured()) {
+    try {
+      const text = await extractTextWithUnstructured(buffer, filename);
+      if (text) {
+        return normaliseExtractedPdfText(text);
+      }
+    } catch (err) {
+      console.warn('[PDF] Unstructured OCR failed:', err);
+    }
   }
 
-  return text;
+  if (isLocalOcrEnabled()) {
+    const lang = getLocalOcrLanguage();
+    try {
+      const text = await extractTextWithLocalOcr(buffer, lang);
+      if (text) {
+        return normaliseExtractedPdfText(text);
+      }
+    } catch (err) {
+      console.warn('[PDF] Local OCR failed:', err);
+    }
+  }
+
+  throw new AppError(
+    422,
+    'Could not extract text from the PDF. The file may be scanned/image-based or use an unsupported encoding.',
+  );
+}
+
+async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
+  pdfjs.GlobalWorkerOptions.workerSrc = '';
+  const data = new Uint8Array(buffer);
+  const loadingTask = pdfjs.getDocument({ data });
+  const document = await loadingTask.promise;
+  const pages: string[] = [];
+
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const strings = content.items
+      .map((item) => (item && typeof item === 'object' ? (item as { str?: string }).str : ''))
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+
+    if (strings.length > 0) {
+      pages.push(strings.join(' '));
+    }
+  }
+
+  return normaliseExtractedPdfText(pages.join('\n'));
+}
+
+function isLocalOcrEnabled(): boolean {
+  const raw = env.OCR_ENABLE_LOCAL_FALLBACK ?? 'true';
+  const normalised = raw.trim().toLowerCase();
+  if (['true', '1', 'yes', 'y', 'on'].includes(normalised)) return true;
+  if (['false', '0', 'no', 'n', 'off'].includes(normalised)) return false;
+  return true;
+}
+
+function getLocalOcrLanguage(): string {
+  const raw = env.OCR_TESSERACT_LANG ?? 'eng';
+  return raw.trim() || 'eng';
+}
+
+function isOcrForced(): boolean {
+  const raw = env.OCR_FORCE ?? 'false';
+  const normalised = raw.trim().toLowerCase();
+  if (['true', '1', 'yes', 'y', 'on'].includes(normalised)) return true;
+  if (['false', '0', 'no', 'n', 'off'].includes(normalised)) return false;
+  return false;
+}
+
+function normaliseExtractedPdfText(text: string): string {
+  return text
+    .replace(/\u0000/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\r/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n')
+    .trim();
 }
 
 /**

@@ -431,7 +431,7 @@ const swaggerSpec: JsonObject = {
         tags: ['Memories'],
         summary: 'Create memories from an uploaded document',
         description:
-          'Upload a document (PDF, DOCX, TXT, or MD). The server extracts text, passes it through the LLM for memory extraction, embeds, and stores. Max file size: 10 MB.',
+          'Upload a document (PDF, DOCX, TXT, or MD). The server extracts text (including OCR for scanned PDFs), passes it through the LLM for memory extraction, embeds, and stores. Max file size: 10 MB.',
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
