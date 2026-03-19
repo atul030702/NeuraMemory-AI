@@ -1,0 +1,52 @@
+# Dependency modules
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Editor/IDE directories and files
+.vscode/
+!.vscode/extensions.json
+.idea/
+
+# Docker
+.docker
+*.docker-compose.local.yml
+
+# Backups and data
+backups/
+mongodb_data/
+qdrant_data/
+
+# AI/Assistant
+.gemini/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/
