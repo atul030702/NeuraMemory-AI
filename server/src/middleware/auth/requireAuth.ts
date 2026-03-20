@@ -27,25 +27,34 @@ export function requireAuth(
   next: NextFunction,
 ): void {
   try {
-    const authHeader = req.headers['authorization'];
+    let token: string | undefined;
 
-    if (!authHeader) {
+    // 1. Check for the Standard Authorization Header (Bearer Token)
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+
+    // 2. Fallback: Check for 'authorization' inside the Cookie header
+    if (!token && req.headers.cookie) {
+      // Manual parsing of the cookie string
+      const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=');
+        if (key) {
+          acc[key] = value || '';
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
+      token = cookies['authorization'];
+    }
+
+    // 3. If no token is found in either place, throw error
+    if (!token) {
       throw new AppError(401, 'Authentication required. No token provided.');
     }
 
-    // Expect: "Bearer <token>"
-    const parts = authHeader.split(' ');
-
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      throw new AppError(
-        401,
-        'Malformed Authorization header. Expected format: Bearer <token>.',
-      );
-    }
-
-    const token = parts[1]!;
-
-    // Verify and decode
+    // 4. Verify and decode
     const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
 
     // Validate that the payload contains the expected fields
@@ -63,15 +72,14 @@ export function requireAuth(
     };
 
     req.user = payload;
-
     next();
+
   } catch (err) {
     if (err instanceof AppError) {
       next(err);
       return;
     }
 
-    // Handle specific JWT error types
     if (err instanceof jwt.TokenExpiredError) {
       next(new AppError(401, 'Token has expired. Please log in again.'));
       return;
@@ -82,13 +90,6 @@ export function requireAuth(
       return;
     }
 
-    if (err instanceof jwt.NotBeforeError) {
-      next(new AppError(401, 'Token is not yet active.'));
-      return;
-    }
-
-    next(
-      new AppError(401, 'Authentication failed. Please provide a valid token.'),
-    );
+    next(new AppError(401, 'Authentication failed. Please provide a valid token.'));
   }
 }

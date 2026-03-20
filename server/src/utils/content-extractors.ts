@@ -24,7 +24,6 @@ export async function extractTextFromUrl(url: string): Promise<string> {
       formats: ['markdown'],
     }) as any;
 
-    console.log("web crawl response", response);
 
     if (response.success === false) {
       throw new AppError(
