@@ -1,21 +1,8 @@
-/**
- * Memory controllers — one handler per source type.
- *
- * Each controller:
- *  1. Validates the incoming request (Zod + multer).
- *  2. Reads `userId` from `req.user` (set by `requireAuth` middleware).
- *  3. Delegates to the memory service.
- *  4. Returns a consistent JSON response.
- *
- * Errors are forwarded to the central error handler via `next()`.
- */
-
 import { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import {
   plainTextSchema,
   linkSchema,
-  documentMetaSchema,
   ALLOWED_DOCUMENT_MIMES,
 } from '../../validations/memory.validation.js';
 import {
@@ -28,10 +15,6 @@ import {
 import { AppError } from '../../utils/AppError.js';
 import type { MemorySource } from '../../types/memory.types.js';
 
-// ---------------------------------------------------------------------------
-// Helper — extract authenticated userId from req.user
-// ---------------------------------------------------------------------------
-
 function getAuthUserId(req: Request): string {
   const user = req.user;
   if (!user?.userId) {
@@ -39,10 +22,6 @@ function getAuthUserId(req: Request): string {
   }
   return user.userId;
 }
-
-// ---------------------------------------------------------------------------
-// POST /memories/text — Create memories from plain text
-// ---------------------------------------------------------------------------
 
 export async function createFromText(
   req: Request,
@@ -67,10 +46,6 @@ export async function createFromText(
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /memories/link — Create memories from a URL
-// ---------------------------------------------------------------------------
-
 export async function createFromLink(
   req: Request,
   res: Response,
@@ -94,10 +69,6 @@ export async function createFromLink(
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /memories/document — Create memories from an uploaded document
-// ---------------------------------------------------------------------------
-
 export async function createFromDocument(
   req: Request,
   res: Response,
@@ -105,24 +76,12 @@ export async function createFromDocument(
 ): Promise<void> {
   try {
     const userId = getAuthUserId(req);
-
-    // Multer has already run as middleware — file is in req.file
     const file = (req as Request & { file?: Express.Multer.File }).file;
 
     if (!file) {
       throw new AppError(400, 'No file uploaded. Please attach a document.');
     }
 
-    // Validate any extra metadata from the body (currently none required beyond userId)
-    const metaResult = documentMetaSchema.safeParse(req.body);
-    if (!metaResult.success) {
-      throw new AppError(
-        400,
-        metaResult.error.errors[0]?.message ?? 'Invalid input.',
-      );
-    }
-
-    // Double‑check MIME type (belt‑and‑suspenders alongside multer filter)
     if (
       !(ALLOWED_DOCUMENT_MIMES as readonly string[]).includes(file.mimetype)
     ) {
@@ -141,7 +100,6 @@ export async function createFromDocument(
 
     res.status(201).json(response);
   } catch (err) {
-    // Translate Multer errors into AppErrors for consistent API responses
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         next(new AppError(413, 'File size exceeds the 10 MB limit.'));
@@ -155,10 +113,6 @@ export async function createFromDocument(
   }
 }
 
-// ---------------------------------------------------------------------------
-// GET /memories — List memories for the authenticated user
-// ---------------------------------------------------------------------------
-
 export async function getMemories(
   req: Request,
   res: Response,
@@ -168,9 +122,7 @@ export async function getMemories(
     const userId = getAuthUserId(req);
 
     const kind =
-      typeof req.query['kind'] === 'string'
-        ? req.query['kind']
-        : undefined;
+      typeof req.query['kind'] === 'string' ? req.query['kind'] : undefined;
 
     const sourceRaw = req.query['source'];
     const source: MemorySource | undefined =
@@ -185,7 +137,9 @@ export async function getMemories(
         ? Math.min(Math.max(Number(limitRaw), 1), 500)
         : 100;
 
-    const options: { kind?: string; source?: MemorySource; limit?: number } = { limit };
+    const options: { kind?: string; source?: MemorySource; limit?: number } = {
+      limit,
+    };
     if (kind !== undefined) options.kind = kind;
     if (source !== undefined) options.source = source;
 
@@ -200,10 +154,6 @@ export async function getMemories(
     next(err);
   }
 }
-
-// ---------------------------------------------------------------------------
-// DELETE /memories — Delete all memories for the authenticated user
-// ---------------------------------------------------------------------------
 
 export async function deleteMemories(
   req: Request,

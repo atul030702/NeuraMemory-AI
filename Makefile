@@ -79,10 +79,10 @@ qdrant-health: ## Check Qdrant health
 ##@ Testing & Quality
 
 test: ## Run API tests (requires running server)
-	cd server && ./test.sh
+	cd server && ./test-routes.sh
 
 test-verbose: ## Run API tests with verbose output
-	cd server && VERBOSE=true ./test.sh
+	cd server && VERBOSE=true ./test-routes.sh
 
 lint-server: ## Run ESLint on server code
 	docker compose $(DEV_COMPOSE_FILES) exec server npm run lint

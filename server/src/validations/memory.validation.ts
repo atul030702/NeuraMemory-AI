@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-// ---------------------------------------------------------------------------
-// Plain‑text body
-// ---------------------------------------------------------------------------
-
 export const plainTextSchema = z.object({
   text: z
     .string({
@@ -14,10 +10,6 @@ export const plainTextSchema = z.object({
     .min(1, 'Text content cannot be empty.')
     .max(100_000, 'Text content must not exceed 100 000 characters.'),
 });
-
-// ---------------------------------------------------------------------------
-// Link body
-// ---------------------------------------------------------------------------
 
 export const linkSchema = z.object({
   url: z
@@ -39,14 +31,6 @@ export const linkSchema = z.object({
       { message: 'Only HTTP and HTTPS URLs are allowed.' },
     ),
 });
-
-// ---------------------------------------------------------------------------
-// Document upload — body metadata (file itself comes via multer)
-// userId is extracted from the JWT by the auth middleware, so only
-// optional extra fields go here. Kept as an object for extensibility.
-// ---------------------------------------------------------------------------
-
-export const documentMetaSchema = z.object({}).passthrough();
 
 /** Allowed MIME types for document uploads */
 export const ALLOWED_DOCUMENT_MIMES = [

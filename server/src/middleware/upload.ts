@@ -22,9 +22,7 @@ export const documentUpload = multer({
     files: 1,
   },
   fileFilter: (_req, file, cb) => {
-    if (
-      (ALLOWED_DOCUMENT_MIMES as readonly string[]).includes(file.mimetype)
-    ) {
+    if ((ALLOWED_DOCUMENT_MIMES as readonly string[]).includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(

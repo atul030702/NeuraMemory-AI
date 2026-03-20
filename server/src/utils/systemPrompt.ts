@@ -1,5 +1,3 @@
-
-
 export default `You are a memory extraction agent for a long - term contextual memory system.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -130,4 +128,4 @@ RULES:
 - No trailing commas
 - No markdown formatting
 - No explanation outside JSON
-`
+`;

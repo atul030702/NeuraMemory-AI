@@ -34,10 +34,7 @@ export async function extractTextWithUnstructured(
   filename: string,
 ): Promise<string> {
   if (!env.UNSTRUCTURED_API_KEY) {
-    throw new AppError(
-      502,
-      'Unstructured API key is not configured for OCR.',
-    );
+    throw new AppError(502, 'Unstructured API key is not configured for OCR.');
   }
 
   const { jobId } = await submitUnstructuredJob(buffer, filename);
@@ -110,13 +107,18 @@ async function submitUnstructuredJob(
 
   const data = (await response.json()) as { id?: string };
   if (!data?.id) {
-    throw new AppError(502, 'Unstructured OCR job creation returned no job ID.');
+    throw new AppError(
+      502,
+      'Unstructured OCR job creation returned no job ID.',
+    );
   }
 
   return { jobId: data.id };
 }
 
-async function pollUnstructuredJob(jobId: string): Promise<UnstructuredJobInfo> {
+async function pollUnstructuredJob(
+  jobId: string,
+): Promise<UnstructuredJobInfo> {
   const apiKey = env.UNSTRUCTURED_API_KEY;
   if (!apiKey) {
     throw new AppError(502, 'Unstructured API key is missing.');
@@ -143,7 +145,11 @@ async function pollUnstructuredJob(jobId: string): Promise<UnstructuredJobInfo> 
     }
 
     const job = (await response.json()) as UnstructuredJobInfo;
-    if (job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'STOPPED') {
+    if (
+      job.status === 'COMPLETED' ||
+      job.status === 'FAILED' ||
+      job.status === 'STOPPED'
+    ) {
       return job;
     }
 
@@ -196,7 +202,9 @@ async function downloadUnstructuredOutput(
   }
 }
 
-function collectOutputTargets(job: UnstructuredJobInfo): Array<{ fileId: string; nodeId?: string }> {
+function collectOutputTargets(
+  job: UnstructuredJobInfo,
+): Array<{ fileId: string; nodeId?: string }> {
   const targets: Array<{ fileId: string; nodeId?: string }> = [];
 
   const outputFiles = job.output_node_files ?? [];
@@ -227,8 +235,15 @@ function extractTextFromUnstructuredOutput(output: unknown): string {
 
   if (Array.isArray(output)) {
     return output
-      .map((item) => (item && typeof item === 'object' ? (item as { text?: string }).text : ''))
-      .filter((text): text is string => typeof text === 'string' && text.trim().length > 0)
+      .map((item) =>
+        item && typeof item === 'object'
+          ? (item as { text?: string }).text
+          : '',
+      )
+      .filter(
+        (text): text is string =>
+          typeof text === 'string' && text.trim().length > 0,
+      )
       .join('\n');
   }
 

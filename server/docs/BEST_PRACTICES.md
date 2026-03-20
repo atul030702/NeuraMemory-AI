@@ -947,7 +947,7 @@ Before committing code, verify:
 - [ ] Input validation uses Zod schemas
 - [ ] Database operations use repositories
 - [ ] No sensitive data in logs
-- [ ] Tests pass (`./test.sh`)
+- [ ] Tests pass (`./test-routes.sh`)
 - [ ] Documentation is updated
 
 ---

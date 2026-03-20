@@ -10,7 +10,10 @@
 import { randomUUID } from 'node:crypto';
 import { getQdrantClient } from '../lib/qdrant.js';
 import { EMBEDDING_DIMENSION } from '../utils/embeddings.js';
-import type { StoredMemoryPayload, MemorySource } from '../types/memory.types.js';
+import type {
+  StoredMemoryPayload,
+  MemorySource,
+} from '../types/memory.types.js';
 
 const COLLECTION_NAME = 'memories';
 
@@ -166,9 +169,7 @@ export async function getMemoriesByUser(
     with_vector: false,
   });
 
-  return results.points.map(
-    (p) => p.payload as unknown as StoredMemoryPayload,
-  );
+  return results.points.map((p) => p.payload as unknown as StoredMemoryPayload);
 }
 
 // ---------------------------------------------------------------------------
@@ -194,6 +195,9 @@ export async function deleteMemoriesByUser(userId: string): Promise<void> {
 
 /**
  * Delete a specific memory point by its Qdrant ID.
+ *
+ * @planned vNext
+ * Reserved for future single-memory deletion endpoints.
  */
 export async function deleteMemoryById(pointId: string): Promise<void> {
   await ensureCollection();

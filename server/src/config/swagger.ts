@@ -134,10 +134,7 @@ const swaggerSpec: JsonObject = {
               semantic: {
                 type: 'array',
                 items: { type: 'string' },
-                example: [
-                  "User's name is Shivam",
-                  'User prefers dark mode',
-                ],
+                example: ["User's name is Shivam", 'User prefers dark mode'],
               },
               bubbles: {
                 type: 'array',
@@ -223,7 +220,8 @@ const swaggerSpec: JsonObject = {
             },
           },
           '400': {
-            description: 'Validation error (invalid email, weak password, etc.)',
+            description:
+              'Validation error (invalid email, weak password, etc.)',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },

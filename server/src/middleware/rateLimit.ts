@@ -32,6 +32,10 @@ const baseOptions: Partial<Options> = {
   skipSuccessfulRequests: false,
 };
 
+/**
+ * @planned vNext
+ * Enable on auth routes once deployment-specific thresholds are finalized.
+ */
 export const loginRateLimiter = rateLimit({
   ...baseOptions,
   windowMs: loginWindowMs,
@@ -43,6 +47,10 @@ export const loginRateLimiter = rateLimit({
   ),
 });
 
+/**
+ * @planned vNext
+ * Enable on auth routes once deployment-specific thresholds are finalized.
+ */
 export const registerRateLimiter = rateLimit({
   ...baseOptions,
   windowMs: registerWindowMs,

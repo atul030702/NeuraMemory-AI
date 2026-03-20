@@ -20,9 +20,7 @@ export const EMBEDDING_DIMENSION = 1536;
  * @param texts  Array of strings to embed.
  * @returns      Array of number arrays, one per input text, each of length `EMBEDDING_DIMENSION`.
  */
-export async function generateEmbeddings(
-  texts: string[],
-): Promise<number[][]> {
+export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
 
   // Filter out blank entries — the API rejects them
@@ -42,7 +40,9 @@ export async function generateEmbeddings(
     return sorted.map((d) => d.embedding);
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : 'Unknown error generating embeddings';
+      err instanceof Error
+        ? err.message
+        : 'Unknown error generating embeddings';
     console.error('[Embeddings] API call failed:', message);
     throw new AppError(502, `Embedding generation failed: ${message}`);
   }
@@ -50,6 +50,9 @@ export async function generateEmbeddings(
 
 /**
  * Convenience wrapper that embeds a single text.
+ *
+ * @planned vNext
+ * Reserved for upcoming query-time semantic search endpoints.
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   const [embedding] = await generateEmbeddings([text]);

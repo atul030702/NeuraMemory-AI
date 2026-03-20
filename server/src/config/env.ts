@@ -13,6 +13,7 @@ const envSchema = z.object({
   QDRANT_API_KEY: z.string().optional(),
   OPENROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
   OPENROUTER_API_KEY: z.string().min(1, 'OpenRouter API Key is required'),
+  FIRECRAWL_API_KEY: z.string().min(1).optional(),
   OPENROUTER_REFERER: z.string().url().optional(),
   OPENROUTER_TITLE: z.string().optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),

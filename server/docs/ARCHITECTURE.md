@@ -725,7 +725,7 @@ export async function ensureUserIndexes(): Promise<void> {
 
 ## Testing Architecture
 
-The project uses a **bash-based integration test suite** (`test.sh`) that:
+The project uses a **bash-based integration test suite** (`test-routes.sh`) that:
 
 1. Validates environment variables
 2. Checks tool dependencies (curl, jq)
@@ -746,7 +746,7 @@ The project uses a **bash-based integration test suite** (`test.sh`) that:
 
 ### Planned Architectural Changes
 
-1. **Authentication Middleware** - JWT verification for protected routes
+1. **Fine-Grained Authorization Middleware** - Role- or permission-aware checks on top of JWT auth
 2. **Rate Limiting** - Prevent abuse (e.g., express-rate-limit)
 3. **Logging Layer** - Structured logging with Winston or Pino
 4. **Caching Layer** - Redis for session/token management
