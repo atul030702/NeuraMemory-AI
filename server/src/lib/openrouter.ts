@@ -4,7 +4,7 @@ import { env } from '../config/env.js';
 const apiKey = env.OPENROUTER_API_KEY;
 const baseUrl = env.OPENROUTER_BASE_URL;
 
-let openrouter: OpenAI | undefined;
+let openrouter: OpenAI;
 
 /**
  * Singleton OpenAI client pre-configured for OpenRouter.

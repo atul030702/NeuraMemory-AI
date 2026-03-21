@@ -172,10 +172,7 @@ export async function getMemoriesByUser(
   });
 
   return {
-    points: results.points.map((p) => ({
-      ...(p.payload as unknown as StoredMemoryPayload),
-      id: String(p.id),
-    })),
+    points: results.points.map((p) => p.payload as unknown as StoredMemoryPayload),
     nextOffset: results.next_page_offset ? String(results.next_page_offset) : null,
   };
 }
@@ -199,29 +196,6 @@ export async function deleteMemoriesByUser(userId: string): Promise<void> {
   });
 
   console.log(`[MemoryRepo] Deleted all memories for user ${userId}.`);
-}
-
-/**
- * Retrieve a single memory point by its Qdrant ID.
- * Returns the point (with payload) or null if not found.
- */
-export async function getMemoryPointById(
-  pointId: string,
-): Promise<{ id: string; payload: StoredMemoryPayload } | null> {
-  await ensureCollection();
-  const client = getQdrantClient();
-
-  const results = await client.retrieve(COLLECTION_NAME, {
-    ids: [pointId],
-    with_payload: true,
-  });
-
-  if (results.length === 0) return null;
-
-  return {
-    id: String(results[0]!.id),
-    payload: results[0]!.payload as unknown as StoredMemoryPayload,
-  };
 }
 
 /**

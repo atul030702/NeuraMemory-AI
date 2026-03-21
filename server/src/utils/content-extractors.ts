@@ -5,31 +5,6 @@
 
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { AppError } from './AppError.js';
-import { extractTextWithLocalOcr } from './ocr-local.js';
-
-pdfjs.GlobalWorkerOptions.workerSrc = '';
-
-type FirecrawlScrapeData = {
-  markdown?: string | null;
-};
-
-type FirecrawlScrapeResponse = {
-  success?: boolean;
-  error?: string;
-  markdown?: string | null;
-  data?: FirecrawlScrapeData | null;
-};
-
-function getFirecrawlApiKey(): string {
-  const apiKey = env.FIRECRAWL_API_KEY?.trim();
-  if (!apiKey) {
-    throw new AppError(
-      502,
-      'FIRECRAWL_API_KEY is not configured. URL memory ingestion is unavailable.',
-    );
-  }
-  return apiKey;
-}
 
 // ---------------------------------------------------------------------------
 // URL / Link content extraction
@@ -101,14 +76,8 @@ export async function extractTextFromDocument(
 ): Promise<string> {
   switch (mimetype) {
     case 'text/plain':
-    case 'text/markdown': {
-      const text = buffer.toString('utf-8');
-      const MAX_PLAIN_TEXT_BYTES = 500_000; // ~500 KB
-      if (Buffer.byteLength(text, 'utf-8') > MAX_PLAIN_TEXT_BYTES) {
-        throw new AppError(413, 'Plain-text file exceeds the 500 KB limit.');
-      }
-      return text;
-    }
+    case 'text/markdown':
+      return buffer.toString('utf-8');
 
     case 'application/pdf':
       return extractTextFromPdfBuffer(buffer);
@@ -168,9 +137,6 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
       if (decoded) {
         textBlocks.push(decoded);
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn('[PDF] pdfjs-dist extraction failed:', msg);
     }
   }
 
@@ -186,27 +152,31 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
   return text;
 }
 
-async function extractTextWithPdfJs(buffer: Buffer): Promise<string> {
-  const data = new Uint8Array(buffer);
-  const loadingTask = pdfjs.getDocument({ data });
-  const document = await loadingTask.promise;
-  const pages: string[] = [];
+/**
+ * Very lightweight DOCX text extraction.
+ *
+ * A `.docx` file is a ZIP archive. The main document text lives inside
+ * `word/document.xml`. We locate that entry, extract it, strip XML tags,
+ * and return the raw text content.
+ *
+ * Limitations:
+ * - Only extracts from `word/document.xml` — headers, footers, footnotes,
+ *   and embedded charts are ignored.
+ * - Images are ignored.
+ *
+ * For production use, swap with a library like `mammoth` or `docx-parser`.
+ */
+function extractTextFromDocxBuffer(buffer: Buffer): string {
+  // DOCX = ZIP. The ZIP local file header signature is PK\x03\x04.
+  // We scan for the `word/document.xml` entry, find its data, and strip XML.
+  const marker = 'word/document.xml';
+  const idx = buffer.indexOf(marker);
 
-  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-    const page = await document.getPage(pageNumber);
-    const content = await page.getTextContent();
-    const strings = content.items
-      .map((item) =>
-        item && typeof item === 'object' ? (item as { str?: string }).str : '',
-      )
-      .filter(
-        (value): value is string =>
-          typeof value === 'string' && value.trim().length > 0,
-      );
-
-    if (strings.length > 0) {
-      pages.push(strings.join(' '));
-    }
+  if (idx === -1) {
+    throw new AppError(
+      422,
+      'The uploaded DOCX file appears to be malformed — could not locate word/document.xml.',
+    );
   }
 
   // A quick‑and‑dirty approach: extract everything from the buffer as UTF‑8

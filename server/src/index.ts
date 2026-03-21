@@ -2,7 +2,6 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import authRouter from './routes/auth.route.js';
 import memoryRouter from './routes/memorie.route.js';
@@ -20,8 +19,6 @@ app.use(express.json({ limit: '200kb' }));
 // cors addition
 const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o: string) => o.trim()).filter(Boolean);
 
-app.use(cookieParser());
-
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -36,14 +33,12 @@ app.use(
 );
 
 // ---------------------------------------------------------------------------
-// API Documentation (Swagger UI) — non-production only
+// API Documentation (Swagger UI)
 // ---------------------------------------------------------------------------
-if (env.NODE_ENV !== 'production') {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-  app.get('/api-docs/spec.json', (_req, res) => {
-    res.json(swaggerSpec);
-  });
-}
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs/spec.json', (_req, res) => {
+  res.json(swaggerSpec);
+});
 
 // ---------------------------------------------------------------------------
 // Routes

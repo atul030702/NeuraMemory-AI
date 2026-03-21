@@ -13,7 +13,7 @@ const router = Router();
 
 router.post('/login', loginRateLimiter, loginController);
 router.post('/register', registerRateLimiter, registerController);
-router.post('/logout', requireAuth, logoutController);
+router.post('/logout', logoutController);
 router.get('/me', requireAuth, meController);
 router.post('/api-key', requireAuth, generateApiKeyController);
 
