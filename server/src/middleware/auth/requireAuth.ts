@@ -35,18 +35,9 @@ export function requireAuth(
       token = authHeader.split(' ')[1];
     }
 
-    // 2. Fallback: Check for 'authorization' inside the Cookie header
-    if (!token && req.headers.cookie) {
-      // Manual parsing of the cookie string
-      const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        if (key) {
-          acc[key] = value || '';
-        }
-        return acc;
-      }, {} as Record<string, string>);
-
-      token = cookies['authorization'];
+    // 2. Fallback: Check for token in cookies (parsed by cookie-parser)
+    if (!token) {
+      token = req.cookies?.['neura_token'];
     }
 
     // 3. If no token is found in either place, throw error

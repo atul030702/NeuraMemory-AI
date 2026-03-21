@@ -1,8 +1,5 @@
-import { useState } from 'react';
-
 function RightSidebar() {
-  const [message, setMessage] = useState('');
-  const isComingSoon = true;
+  const isComingSoon = import.meta.env.VITE_CHAT_ENABLED !== 'true';
 
   return (
     <aside className="w-full h-full flex flex-col bg-neutral-900 border border-neutral-800 rounded-3xl shadow-2xl overflow-hidden relative">
@@ -74,8 +71,6 @@ function RightSidebar() {
 
           <textarea
             rows={1}
-            value={message}
-            onChange={e => setMessage(e.target.value)}
             disabled={isComingSoon}
             placeholder={isComingSoon ? "Chat coming soon…" : "Message Neura AI..."}
             className="flex-1 max-h-32 min-h-[24px] bg-transparent text-sm text-white placeholder:text-slate-500 outline-none resize-none pt-1"
@@ -83,7 +78,7 @@ function RightSidebar() {
 
           {/* Send Button */}
           <button
-            disabled={isComingSoon || !message.trim()}
+            disabled={isComingSoon}
             title={isComingSoon ? "Semantic search coming soon" : "Send"}
             className={`flex items-center justify-center w-8 h-8 rounded-full bg-linear-to-br from-violet-500 to-sky-500 text-white shadow-lg hover:shadow-sky-500/25 transition shrink-0${isComingSoon ? ' opacity-50 cursor-not-allowed' : ' cursor-pointer'}`}
           >

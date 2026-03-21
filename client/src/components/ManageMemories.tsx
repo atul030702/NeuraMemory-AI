@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { api } from '../lib/api';
 
 type Memory = {
@@ -9,9 +10,11 @@ type Memory = {
 };
 
 const ManageMemories = () => {
+  const navigate = useNavigate();
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fetchMemories = useCallback(async () => {
     setLoading(true);
@@ -36,8 +39,9 @@ const ManageMemories = () => {
     try {
       await api.delete(`/api/v1/memories/${id}`);
       setMemories((prev) => prev.filter((m) => m.id !== id));
+      setDeleteError(null);
     } catch {
-      alert('Failed to delete memory. Please try again.');
+      setDeleteError('Failed to delete memory. Please try again.');
     }
   };
 
@@ -53,13 +57,16 @@ const ManageMemories = () => {
                 Organize your saved notes, revisit important context, and clean up entries you no longer need.
               </p>
             </div>
-            <button className="bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold rounded-lg px-4 py-2 h-fit transition shadow">
+            <button className="bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold rounded-lg px-4 py-2 h-fit transition shadow" onClick={() => navigate('/')}>
               + New Memory
             </button>
           </div>
         </div>
 
         <div className="w-full rounded-2xl border border-gray-700 bg-[#232b36] p-4 md:p-6">
+          {deleteError && (
+            <p className="text-red-400 text-sm text-center py-2">{deleteError}</p>
+          )}
           {loading && (
             <p className="text-gray-400 text-sm text-center py-8">Loading memories...</p>
           )}

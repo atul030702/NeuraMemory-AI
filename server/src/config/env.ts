@@ -17,7 +17,14 @@ const envSchema = z.object({
   OPENROUTER_REFERER: z.string().url().optional(),
   OPENROUTER_TITLE: z.string().optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().default('7d').transform(val => val.split('#')[0]!.trim()),
+  JWT_EXPIRES_IN: z
+    .string()
+    .default('7d')
+    .transform(val => val.split('#')[0]!.trim())
+    .refine(
+      val => /^\d+\s*(ms|s|m|h|d|w|y)$/.test(val),
+      { message: 'JWT_EXPIRES_IN must be a valid duration (e.g. 7d, 1h, 30m).' },
+    ),
   UNSTRUCTURED_API_URL: z
     .string()
     .url()

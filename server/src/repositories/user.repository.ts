@@ -1,4 +1,4 @@
-import { WithId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 import { getDb } from '../lib/mongodb.js';
 import { IUser } from '../types/auth.types.js';
 
@@ -44,7 +44,6 @@ export async function findUserByApiKey(
  * Reserved for upcoming account/profile endpoints.
  */
 export async function findUserById(id: string): Promise<WithId<IUser> | null> {
-  const { ObjectId } = await import('mongodb');
   const db = await getDb();
   return db.collection<IUser>(COLLECTION).findOne({ _id: new ObjectId(id) });
 }

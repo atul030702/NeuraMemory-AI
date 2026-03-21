@@ -49,10 +49,10 @@ router.post('/document', documentUpload.single('file'), createFromDocument);
 /** List memories for the authenticated user */
 router.get('/', getMemories);
 
-/** Delete a specific memory by ID */
-router.delete('/:id', deleteMemoryById);
-
 /** Delete all memories for the authenticated user */
 router.delete('/', deleteMemories);
+
+/** Delete a specific memory by ID */
+router.delete('/:id', deleteMemoryById);
 
 export default router;

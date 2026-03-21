@@ -3,6 +3,7 @@ import { AppError } from '../utils/AppError.js';
 
 const DEFAULT_TEMPLATE_ID = 'hi_res_and_enrichment';
 const DEFAULT_TIMEOUT_MS = 120_000;
+const PER_REQUEST_TIMEOUT_MS = 30_000; // 30 seconds per individual fetch
 const INITIAL_POLL_MS = 2_000;
 const MAX_POLL_MS = 10_000;
 
@@ -134,6 +135,7 @@ async function pollUnstructuredJob(
         'unstructured-api-key': apiKey,
         Accept: 'application/json',
       },
+      signal: AbortSignal.timeout(PER_REQUEST_TIMEOUT_MS),
     });
 
     if (!response.ok) {

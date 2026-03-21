@@ -35,6 +35,8 @@ export interface MemoryEntry {
 // ---------------------------------------------------------------------------
 
 export interface StoredMemoryPayload {
+  /** Qdrant point UUID — populated on read, absent on upsert */
+  id?: string;
   userId: string;
   text: string;
   kind: MemoryKind;

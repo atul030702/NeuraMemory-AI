@@ -134,11 +134,17 @@ export async function getMemories(
 
     const limitRaw = req.query['limit'];
     const limit =
-      typeof limitRaw === 'string' && !isNaN(Number(limitRaw))
+      typeof limitRaw === 'string' && limitRaw !== '' && !isNaN(Number(limitRaw))
         ? Math.min(Math.max(Number(limitRaw), 1), 500)
         : 100;
 
     const offset = typeof req.query['offset'] === 'string' ? req.query['offset'] : null;
+
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const INT_RE = /^\d+$/;
+    if (offset !== null && !UUID_RE.test(offset) && !INT_RE.test(offset)) {
+      throw new AppError(400, 'Invalid offset format. Must be a UUID or non-negative integer.');
+    }
 
     const options: { kind?: string; source?: MemorySource; limit?: number; offset?: string | null } = {
       limit,
