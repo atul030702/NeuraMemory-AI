@@ -17,11 +17,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       .catch(() => setStatus('unauth'));
   }, []);
 
-  if (status === 'loading') return (
-    <div className="h-screen w-full bg-neutral-950 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  if (status === 'loading') return null;
   if (status === 'unauth') return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
