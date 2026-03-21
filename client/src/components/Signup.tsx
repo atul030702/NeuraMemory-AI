@@ -8,7 +8,7 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSignup = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const data = new FormData(e.currentTarget);
@@ -69,6 +69,7 @@ const Signup = () => {
               className="bg-neutral-800 border border-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition rounded-lg"
               required
             />
+            <p className="text-gray-500 text-xs">Min 8 characters, at least one uppercase letter and one number.</p>
           </div>
 
           <div className="flex flex-col gap-2">

@@ -19,6 +19,7 @@ import {
   createFromDocument,
   getMemories,
   deleteMemories,
+  deleteMemoryById,
 } from '../controllers/memories/memorie.controller.js';
 import { documentUpload } from '../middleware/upload.js';
 import { requireAuth } from '../middleware/auth/requireAuth.js';
@@ -47,6 +48,9 @@ router.post('/document', documentUpload.single('file'), createFromDocument);
 
 /** List memories for the authenticated user */
 router.get('/', getMemories);
+
+/** Delete a specific memory by ID */
+router.delete('/:id', deleteMemoryById);
 
 /** Delete all memories for the authenticated user */
 router.delete('/', deleteMemories);

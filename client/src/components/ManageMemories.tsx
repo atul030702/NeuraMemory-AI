@@ -1,62 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '../lib/api';
 
-type MemoryCard = {
-  title: string;
+type Memory = {
+  id: string;
   text: string;
+  kind: string;
+  createdAt: string;
 };
 
-const memoryCards: MemoryCard[] = [
-  {
-    title: 'Project kickoff notes',
-    text: 'Initial goals, scope, and delivery checkpoints for the NeuraMemory rollout.',
-  },
-  {
-    title: 'AI research snapshot',
-    text: 'Key points on vector search, retrieval quality, and prompt workflow ideas.',
-  },
-  {
-    title: 'Client feedback digest',
-    text: 'Summary of user pain points, requested features, and priority follow-ups.',
-  },
-];
-
 const ManageMemories = () => {
-  const [cards, setCards] = useState<MemoryCard[]>(memoryCards);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [draftTitle, setDraftTitle] = useState('');
-  const [draftText, setDraftText] = useState('');
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const startEdit = (index: number) => {
-    setEditingIndex(index);
-    setDraftTitle(cards[index].title);
-    setDraftText(cards[index].text);
-  };
-
-  const cancelEdit = () => {
-    setEditingIndex(null);
-    setDraftTitle('');
-    setDraftText('');
-  };
-
-  const saveEdit = () => {
-    if (editingIndex === null) {
-      return;
+  const fetchMemories = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get<{ success: boolean; data: Memory[] }>('/api/v1/memories');
+      setMemories(res.data.data ?? []);
+    } catch {
+      setError('Failed to load memories. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    const trimmedTitle = draftTitle.trim();
-    const trimmedText = draftText.trim();
-    if (!trimmedTitle || !trimmedText) {
-      return;
+  useEffect(() => {
+    fetchMemories();
+  }, [fetchMemories]);
+
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm('Delete this memory? This cannot be undone.');
+    if (!confirmed) return;
+    try {
+      await api.delete(`/api/v1/memories/${id}`);
+      setMemories((prev) => prev.filter((m) => m.id !== id));
+    } catch {
+      alert('Failed to delete memory. Please try again.');
     }
-
-    setCards((prevCards) =>
-      prevCards.map((card, index) =>
-        index === editingIndex
-          ? { title: trimmedTitle, text: trimmedText }
-          : card,
-      ),
-    );
-    cancelEdit();
   };
 
   return (
@@ -78,68 +60,40 @@ const ManageMemories = () => {
         </div>
 
         <div className="w-full rounded-2xl border border-gray-700 bg-[#232b36] p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {cards.map((card, index) => {
-              const isEditing = editingIndex === index;
-              return (
-                <div key={`${card.title}-${index}`} className="rounded-2xl border border-gray-600 bg-neutral-900/80 p-5 shadow-md flex flex-col min-h-[190px]">
+          {loading && (
+            <p className="text-gray-400 text-sm text-center py-8">Loading memories...</p>
+          )}
+          {error && (
+            <p className="text-red-400 text-sm text-center py-8">{error}</p>
+          )}
+          {!loading && !error && memories.length === 0 && (
+            <p className="text-gray-500 text-sm text-center py-8">No memories found.</p>
+          )}
+          {!loading && !error && memories.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {memories.map((memory) => (
+                <div
+                  key={memory.id}
+                  className="rounded-2xl border border-gray-600 bg-neutral-900/80 p-5 shadow-md flex flex-col min-h-[190px]"
+                >
                   <div className="flex items-start justify-end gap-2 mb-3 flex-wrap">
-                    {!isEditing && (
-                      <button
-                        className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold rounded-md px-3 py-1 transition"
-                        onClick={() => startEdit(index)}
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {isEditing && (
-                      <>
-                        <button
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md px-3 py-1 transition"
-                          onClick={saveEdit}
-                          type="button"
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="bg-gray-600 hover:bg-gray-700 text-white text-xs font-semibold rounded-md px-3 py-1 transition"
-                          onClick={cancelEdit}
-                          type="button"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                    <button className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md px-3 py-1 transition" type="button">
+                    <button
+                      className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md px-3 py-1 transition"
+                      type="button"
+                      onClick={() => handleDelete(memory.id)}
+                    >
                       Delete
                     </button>
                   </div>
-                  {isEditing ? (
-                    <div className="flex flex-col gap-3 flex-1">
-                      <input
-                        className="w-full bg-neutral-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500"
-                        value={draftTitle}
-                        onChange={(event) => setDraftTitle(event.target.value)}
-                        placeholder="Memory title"
-                      />
-                      <textarea
-                        className="w-full bg-neutral-800 border border-gray-600 rounded-md px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500 resize-y min-h-[100px]"
-                        value={draftText}
-                        onChange={(event) => setDraftText(event.target.value)}
-                        placeholder="Memory details"
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-base font-semibold text-white mb-2">{card.title}</div>
-                      <div className="text-sm leading-6 text-gray-300 flex-1">{card.text}</div>
-                    </>
-                  )}
+                  <div className="text-[10px] uppercase tracking-widest text-cyan-400 mb-1">{memory.kind}</div>
+                  <div className="text-sm leading-6 text-gray-300 flex-1">{memory.text}</div>
+                  <div className="text-[10px] text-gray-600 mt-3">
+                    {new Date(memory.createdAt).toLocaleDateString()}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>

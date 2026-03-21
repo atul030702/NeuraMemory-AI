@@ -57,7 +57,7 @@ const MainArea = () => {
 
   // ── Submit handlers ──────────────────────────────────────────────────────
 
-  const handleTextSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = (new FormData(e.currentTarget).get('text') as string).trim();
     if (!text) return;
@@ -75,7 +75,7 @@ const MainArea = () => {
     }
   };
 
-  const handleLinkSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleLinkSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const url = (new FormData(e.currentTarget).get('url') as string).trim();
     if (!url) return;
@@ -93,7 +93,7 @@ const MainArea = () => {
     }
   };
 
-  const handleDocumentSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleDocumentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedFile) {
       setError('Please select a file to upload.');

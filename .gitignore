@@ -46,6 +46,7 @@ qdrant_data/
 # AI/Assistant
 .gemini/
 .agents/
+.kiro/
 .agent/
 _agents/
 _agent/

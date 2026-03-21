@@ -1,8 +1,5 @@
-import React from 'react';
-import styles from './Sidebar.module.css';
-
 const Sidebar = () => (
-  <aside className={styles.sidebar}>
+  <aside className="w-full h-full bg-neutral-900">
     {/* All content removed as requested: no logo, no input, no prompt. */}
   </aside>
 );

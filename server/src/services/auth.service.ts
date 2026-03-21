@@ -63,7 +63,21 @@ function buildAuthResponse(
 }
 
 /**
+ * Masks an email address for safe logging.
+ * e.g. "user@example.com" → "u***@example.com"
+ */
+function maskEmail(email: string): string {
+  const atIndex = email.indexOf('@');
+  if (atIndex <= 0) return '[invalid-email]';
+  const local = email.slice(0, atIndex);
+  const domain = email.slice(atIndex); // includes the @
+  const masked = local.length <= 1 ? '*'.repeat(local.length) : `${local[0]}***`;
+  return `${masked}${domain}`;
+}
+
+/**
  * Logs structured auth errors without leaking sensitive secrets.
+ * Email is masked before logging to protect user privacy.
  */
 function logAuthError(
   operation: 'register' | 'login',
@@ -71,11 +85,12 @@ function logAuthError(
   err: unknown,
 ): void {
   const now = new Date().toISOString();
+  const maskedEmail = maskEmail(email);
 
   if (err instanceof Error) {
     console.error(`[AuthService] ${operation} failed`, {
       operation,
-      email,
+      email: maskedEmail,
       reason: err.message,
       timestamp: now,
       stack: err.stack,
@@ -85,7 +100,7 @@ function logAuthError(
 
   console.error(`[AuthService] ${operation} failed`, {
     operation,
-    email,
+    email: maskedEmail,
     reason: 'Unknown error',
     timestamp: now,
     error: String(err),

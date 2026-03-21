@@ -11,6 +11,7 @@ import {
   processLink,
   getUserMemories,
   clearUserMemories,
+  deleteUserMemoryById,
 } from '../../services/memory.service.js';
 import { AppError } from '../../utils/AppError.js';
 import type { MemorySource } from '../../types/memory.types.js';
@@ -137,18 +138,23 @@ export async function getMemories(
         ? Math.min(Math.max(Number(limitRaw), 1), 500)
         : 100;
 
-    const options: { kind?: string; source?: MemorySource; limit?: number } = {
+    const offset = typeof req.query['offset'] === 'string' ? req.query['offset'] : null;
+
+    const options: { kind?: string; source?: MemorySource; limit?: number; offset?: string | null } = {
       limit,
     };
     if (kind !== undefined) options.kind = kind;
     if (source !== undefined) options.source = source;
+    if (offset !== null) options.offset = offset;
 
-    const memories = await getUserMemories(userId, options);
+    const { points, nextOffset } = await getUserMemories(userId, options);
 
     res.status(200).json({
       success: true,
-      message: `Found ${memories.length} memor${memories.length === 1 ? 'y' : 'ies'}.`,
-      data: memories,
+      message: `Found ${points.length} memor${points.length === 1 ? 'y' : 'ies'}.`,
+      data: points,
+      nextOffset,
+      hasMore: nextOffset !== null,
     });
   } catch (err) {
     next(err);
@@ -169,6 +175,26 @@ export async function deleteMemories(
       success: true,
       message: 'All memories deleted.',
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteMemoryById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = getAuthUserId(req);
+    const pointId = Array.isArray(req.params['id'])
+      ? req.params['id'][0]
+      : req.params['id'];
+    if (!pointId) {
+      throw new AppError(400, 'Memory ID is required.');
+    }
+    await deleteUserMemoryById(userId, pointId);
+    res.status(200).json({ success: true, message: 'Memory deleted.' });
   } catch (err) {
     next(err);
   }

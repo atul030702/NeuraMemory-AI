@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { api } from '../lib/api';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -17,9 +18,13 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setMenuOpen(false);
-    navigate('/login');
+    try {
+      await api.post('/api/v1/logout');
+    } finally {
+      navigate('/login');
+    }
   };
 
   const handleManageMemories = () => {

@@ -1,4 +1,5 @@
 import FirecrawlApp from '@mendable/firecrawl-js';
+import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { env } from '../config/env.js';
 import {
@@ -189,45 +190,25 @@ function normaliseExtractedPdfText(text: string): string {
     .trim();
 }
 
-function extractTextFromDocxBuffer(buffer: Buffer): string {
-  const marker = 'word/document.xml';
-  const markerIndex = buffer.indexOf(marker);
-
-  if (markerIndex === -1) {
+async function extractTextFromDocxBuffer(buffer: Buffer): Promise<string> {
+  try {
+    const result = await mammoth.extractRawText({ buffer });
+    if (result.messages.length > 0) {
+      console.warn('[DOCX] Extraction warnings:', result.messages);
+    }
+    const text = result.value.trim();
+    if (!text) {
+      throw new AppError(
+        422,
+        'Could not extract text from the DOCX file. The document may be empty.',
+      );
+    }
+    return text;
+  } catch (err) {
+    if (err instanceof AppError) throw err;
     throw new AppError(
       422,
-      'The uploaded DOCX file appears malformed: word/document.xml is missing.',
+      `DOCX extraction failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
     );
   }
-
-  const asString = buffer.toString('utf-8');
-  const xmlStart = asString.indexOf('<?xml', markerIndex);
-  if (xmlStart === -1) {
-    throw new AppError(422, 'Could not parse DOCX: no XML content found.');
-  }
-
-  const nextPk = asString.indexOf('PK', xmlStart + 10);
-  const xmlContent =
-    nextPk === -1 ? asString.slice(xmlStart) : asString.slice(xmlStart, nextPk);
-
-  const text = xmlContent
-    .replace(/<w:p[^>]*>/g, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-
-  if (!text) {
-    throw new AppError(
-      422,
-      'Could not extract text from the DOCX file. The document may be empty.',
-    );
-  }
-
-  return text;
 }

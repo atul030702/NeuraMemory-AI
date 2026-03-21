@@ -1,6 +1,7 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { env } from './config/env.js';
 import authRouter from './routes/auth.route.js';
 import memoryRouter from './routes/memorie.route.js';
@@ -8,19 +9,24 @@ import swaggerSpec from './config/swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { ensureUserIndexes } from './repositories/user.repository.js';
 import { getMongoClient } from './lib/mongodb.js';
+import { getQdrantClient, closeQdrantClient } from './lib/qdrant.js';
 
 const app = express();
-app.use(express.json());
+app.use(helmet());
+app.use(express.json({ limit: '200kb' }));
 
 // cors addition
+const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o: string) => o.trim()).filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:3000",
-      // add production url
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    },
     credentials: true,
   })
 );
@@ -102,6 +108,14 @@ async function shutdown(signal: string): Promise<void> {
       );
     }
 
+    // Close Qdrant client
+    try {
+      closeQdrantClient();
+      console.log('[Shutdown] Qdrant client closed.');
+    } catch {
+      console.log('[Shutdown] Qdrant client was not initialized or already closed.');
+    }
+
     console.log('[Shutdown] Completed successfully.');
     process.exit(0);
   } catch (err) {
@@ -135,6 +149,15 @@ async function main(): Promise<void> {
   // Ensure DB indexes are ready before serving traffic
   await ensureUserIndexes();
   console.log('[Startup] Database indexes verified.');
+
+  // Verify Qdrant connectivity
+  try {
+    const qdrant = getQdrantClient();
+    await qdrant.getCollections();
+    console.log('[Startup] Qdrant connectivity verified.');
+  } catch (err) {
+    console.error('[Startup] WARNING: Qdrant is unreachable. Memory operations will fail.', err);
+  }
 
   const port = Number(env.PORT);
 

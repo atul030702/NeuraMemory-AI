@@ -2,18 +2,26 @@ import { Db, MongoClient } from 'mongodb';
 import { env } from '../config/env.js';
 
 const uri = env.MONGODB_URI;
-let client: MongoClient;
+
+// Store the in-flight promise, not the resolved client.
+// This prevents a race condition where concurrent callers both pass the
+// `if (!client)` guard before the first connection resolves, creating
+// multiple MongoClient instances.
+let clientPromise: Promise<MongoClient> | null = null;
 
 /**
  * Singleton client for MongoDB connection management.
+ * Uses a promise-based singleton to prevent concurrent connection leaks.
  */
-export async function getMongoClient(): Promise<MongoClient> {
-  if (!client) {
-    client = new MongoClient(uri);
-    await client.connect();
-    console.log('--- MongoDB Connected ---');
+export function getMongoClient(): Promise<MongoClient> {
+  if (!clientPromise) {
+    const c = new MongoClient(uri);
+    clientPromise = c.connect().then(() => {
+      console.log('--- MongoDB Connected ---');
+      return c;
+    });
   }
-  return client;
+  return clientPromise;
 }
 
 /**
