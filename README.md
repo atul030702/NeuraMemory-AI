@@ -1,282 +1,176 @@
 # NeuraMemory-AI
 
-## {Need to be updated after v0 is done}
+NeuraMemory-AI is a full-stack memory ingestion and retrieval platform.
+It ingests text, links, and documents through an LLM extraction pipeline, generates embeddings, stores vectors in Qdrant, and enforces user-scoped access across all memory APIs.
 
-<div align="center">
-  <a href="https://github.com/Gautam7352/NeuraMemory-AI">
-    <img src="[![alt text](image.png)]" alt="Logo" width="80" height="80">
-  </a>
+## Key Features
 
-  <h3 align="center">NeuraMemory-AI</h3>
+- JWT cookie-based authentication using `httpOnly` session cookies.
+- User-scoped authorization for all memory operations.
+- Ingestion from plain text, URLs, and uploaded documents.
+- Document parsing for PDF, DOCX, TXT, and Markdown files.
+- LLM extraction into `semantic` and `bubble` memory entries.
+- Embedding generation and vector storage in Qdrant.
+- Memory retrieval with `kind`, `source`, `limit`, and `offset` query filters.
+- Deletion by memory ID or full user memory reset.
+- OpenAPI documentation through Swagger UI in non-production mode.
+- MCP transport endpoints under `/api/v1/mcp`.
 
-  <p align="center">
-    An intelligent system designed to augment human memory and knowledge management using advanced AI.
-    <br />
-    <a href="https://github.com/Gautam7352/NeuraMemory-AI/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/Gautam7352/NeuraMemory-AI/issues">Request Feature</a>
-  </p>
-</div>
+## How It Works
 
-<!-- BADGES -->
-<div align="center">
-  <a href="[Link to license]"><img src="https://img.shields.io/github/license/[Your GitHub Username]/[Your Repo Name]?style=for-the-badge" alt="License"></a>
-  <a href="[Link to deployed project or website]"><img src="https://img.shields.io/badge/Project-Live-brightgreen?style=for-the-badge" alt="Project Status"></a>
-</div>
+1. The user authenticates; the server sets a JWT `httpOnly` cookie.
+2. The user submits input as text, URL, or document.
+3. The backend extracts normalized text from the selected source.
+4. The extraction pipeline returns structured memory entries (`semantic`, `bubble`).
+5. The backend generates embeddings for each extracted entry.
+6. Vectors and payload metadata are stored in Qdrant, and user/account data is stored in MongoDB.
+7. The frontend retrieves user-scoped memories and supports filtering and deletion.
 
----
+## Tech Stack
 
-## Table of Contents
+- Frontend: React, TypeScript, Vite, Tailwind CSS, Axios
+- Backend: Node.js, Express, TypeScript, Zod, JWT, Multer
+- Database: MongoDB (user/account data), Qdrant (memory vectors)
+- AI: OpenRouter (memory extraction and embeddings)
+- Processing: Firecrawl, pdfjs-dist, Mammoth, local OCR fallback
+- Tools: ESLint, Prettier, Vitest, Docker Compose
 
-- About The Project
-  - Built With
-- Getting Started
-  - Prerequisites
-  - Installation
-- Usage
-- Roadmap
-- Contributing
-- License
-- Contact
-- Acknowledgments
+## Project Structure
 
----
+```text
+.
+├── client/              # React frontend
+├── server/              # Express API + services
+├── docker-compose.yml
+├── docker-compose.dev.yml
+├── DOCKER.md
+└── README.md
+```
 
-## About The Project
+## Installation
 
-[![Product Name Screen Shot][product-screenshot]]([Link to your project website or demo])
+Prerequisites:
 
-**NeuraMemory-AI** is a project that explores the intersection of artificial intelligence and human cognition. It aims to create a "second brain" that helps users capture, organize, and retrieve information effortlessly. By leveraging state-of-the-art language models and memory-augmented neural networks, NeuraMemory-AI can understand context, make connections between disparate pieces of information, and provide intelligent summaries and insights.
+- Node.js (server requires `>= 24`)
+- npm
+- Docker + Docker Compose
 
-Whether you're a student, a researcher, or a lifelong learner, NeuraMemory-AI is designed to enhance your cognitive abilities and streamline your knowledge workflow.
+1. Clone the repository:
 
-### Key Features:
+```bash
+git clone https://github.com/Gautam7352/NeuraMemory-AI.git
+cd NeuraMemory-AI
+```
 
-- **Intelligent Note-Taking:** Capture thoughts and ideas in natural language.
-- **Automatic Organization:** The AI automatically tags, categorizes, and links related notes.
-- **Semantic Search:** Find information based on meaning and context, not just keywords.
-- **Knowledge Graph:** Visualize the connections between your ideas.
-- **Personalized Summaries:** Get AI-generated summaries of your notes and documents.
+2. Install backend dependencies:
 
-### Built With
+```bash
+cd server
+npm install
+```
 
-This project is built with a modern stack of technologies to deliver a robust and scalable solution.
+3. Install frontend dependencies:
 
-- [![TypeScript][TypeScript.org]][TypeScript-url]
-- [![Node.js][Node.js.org]][Node.js-url]
-- [![Express.js][Express.js.org]][Express-url]
+```bash
+cd ../client
+npm install
+cd ..
+```
 
----
+4. Create environment file:
 
-## Getting Started
+```bash
+cp server/.env.example server/.env
+```
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+5. Start required data services:
 
-### Prerequisites
+```bash
+docker compose up -d mongodb qdrant
+```
 
-You'll need to have the following software installed on your system.
+## Environment Variables
 
-- **Node.js and npm** (for local development)
+Required in `server/.env`:
 
-  ```sh
-  npm install npm@latest -g
-  ```
-
-- **Docker and Docker Compose** (for containerized deployment)
-  ```sh
-  docker --version
-  docker compose version
-  ```
-
-### Installation
-
-Choose either Docker (recommended) or local installation:
-
-#### Option 1: Docker Deployment (Recommended)
-
-1.  **Clone the repository**
-
-    ```sh
-    git clone https://github.com/Gautam7352/NeuraMemory-AI.git
-    cd NeuraMemory-AI
-    ```
-
-2.  **Configure environment variables**
-
-    ```sh
-    cp server/.env.example server/.env
-    # Edit server/.env with your API keys and settings
-    ```
-
-3.  **Start all services**
-
-    ```sh
-    # Production
-    docker compose up -d
-
-    # Development (with hot-reload)
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-    ```
-
-4.  **Access the application**
-    - Frontend: http://localhost:5173
-    - API: http://localhost:3000
-
-See [DOCKER.md](DOCKER.md) for complete Docker deployment guide.
-
-#### Option 2: Local Installation
-
-1.  **Clone the repository**
-
-    ```sh
-    git clone https://github.com/Gautam7352/NeuraMemory-AI.git
-    cd NeuraMemory-AI
-    ```
-
-2.  **Install server dependencies**
-
-    ```sh
-    cd server
-    npm install
-    ```
-
-3.  **Install client dependencies**
-
-    ```sh
-    cd ../client
-    npm install
-    ```
-
-4.  **Configure Environment Variables**
-    Create `server/.env` with required configuration:
-
-    ```env
-    MONGODB_URI=mongodb://localhost:27017/neuramemory
-    QDRANT_URL=http://localhost:6333
-    OPENROUTER_API_KEY=your-api-key
-    JWT_SECRET=random-string-at-least-32-characters
-    ```
-
-5.  **Start MongoDB and Qdrant** (required)
-    ```sh
-    # Using Docker
-    docker compose up -d mongodb qdrant
-    ```
-
----
+```env
+MONGODB_URI=mongodb://localhost:27017/neuramemory
+QDRANT_URL=http://localhost:6333
+OPENROUTER_API_KEY=your_openrouter_api_key
+JWT_SECRET=your_secret_with_minimum_32_characters
+```
 
 ## Usage
 
-### Running with Docker
+Run backend:
 
-```sh
-# Start all services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop all services
-docker compose down
-```
-
-### Running Locally
-
-1.  **Start the Backend Server**
-
-    ```sh
-    cd server
-    npm run dev
-    ```
-
-2.  **Start the Frontend** (in another terminal)
-
-    ```sh
-    cd client
-    npm run dev
-    ```
-
-3.  **Access the application**
-    - Frontend: http://localhost:5173
-    - API: http://localhost:3000
-
-### Testing the API
-
-Run the comprehensive test suite:
-
-```sh
+```bash
 cd server
-./test.sh
+npm run dev
 ```
 
-For more details, see:
+Run frontend (new terminal):
 
-- [Server Documentation](server/docs/README.md)
-- [API Documentation](server/docs/API.md)
-- [Docker Guide](DOCKER.md)
+```bash
+cd client
+npm run dev
+```
 
----
+URLs:
+
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:3000`
+- API docs (non-production only): `http://localhost:3000/api-docs`
+
+Run full stack with Docker:
+
+```bash
+docker compose up -d
+```
+
+## API Endpoints
+
+Base path: `/api/v1`
+
+Auth:
+
+- `POST /register`
+- `POST /login`
+- `POST /logout`
+- `GET /me`
+- `POST /api-key`
+
+Memories:
+
+- `POST /memories/text`
+- `POST /memories/link`
+- `POST /memories/document`
+- `GET /memories`
+- `DELETE /memories/:id`
+- `DELETE /memories`
+
+MCP:
+
+- `POST /mcp`
+- `GET /mcp`
+- `DELETE /mcp`
+- `GET /mcp/health`
 
 ## Roadmap
 
-We have an exciting roadmap for NeuraMemory-AI! Here are some of the features we're planning to add:
-
-- [ ] Mobile Application (iOS & Android)
-- [ ] Browser Extension for web clipping
-- [ ] Integration with other apps (Notion, Obsidian, etc.)
-- [ ] Advanced team collaboration features
-
-See the [open issues]([Link to your project repository]/issues) for a full list of proposed features (and known issues).
-
----
+- Add a semantic search API endpoint for direct query-based retrieval.
+- Improve ownership checks for single-memory deletion.
+- Expand automated tests for memory and auth flows.
+- Add frontend controls for pagination and filtering state.
 
 ## Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
-Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests to us.
-
----
+1. Fork the repo.
+2. Create a feature branch.
+3. Make changes with tests/lint passing.
+4. Commit with a clear message.
+5. Open a pull request.
 
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
-
----
-
-## Contact
-
-[Your Name] - [@YourTwitterHandle] - [your.email@example.com]
-
-Project Link: [https://github.com/[Your GitHub Username]/NeuraMemory-AI](https://github.com/[Your GitHub Username]/NeuraMemory-AI)
-
----
-
-## Acknowledgments
-
-A project of this scale wouldn't be possible without the incredible work of others. We'd like to thank:
-
-- Awesome README Templates
-- Img Shields
-- Font Awesome
-- [All contributors and supporters of this project]
-
-<!-- MARKDOWN LINKS & IMAGES -->
-
-[product-screenshot]: images/screenshot.png
-[TypeScript.org]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
-[TypeScript-url]: https://www.typescriptlang.org/
-[Node.js.org]: https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white
-[Node.js-url]: https://nodejs.org/
-[Express.js.org]: https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white
-[Express-url]: http://expressjs.com/
-
-https://www.npmjs.com/package/unstructured-client
+Licensed under Apache License 2.0. See `LICENSE`.
