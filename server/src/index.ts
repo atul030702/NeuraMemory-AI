@@ -17,7 +17,7 @@ app.use(helmet());
 app.use(express.json({ limit: '200kb' }));
 
 // cors addition
-const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o: string) => o.trim()).filter(Boolean);
+const allowedOrigins = ["*"]
 
 app.use(
   cors({
