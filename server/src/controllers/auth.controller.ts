@@ -63,7 +63,7 @@ export async function loginController(
     res.cookie('authorization', response.token, {
       httpOnly: true,
       secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'strict',
+      sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
       maxAge: 60 * 60 * 1000,
     });
 
@@ -93,7 +93,7 @@ export async function registerController(
     res.cookie("authorization", response.token, {
       httpOnly: true,
       secure: process.env['NODE_ENV'] === "production",
-      sameSite: "lax",
+      sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
       maxAge: COOKIE_MAX_AGE_MS,
     });
 
@@ -135,7 +135,7 @@ export async function logoutController(
     res.clearCookie('authorization', {
       httpOnly: true,
       secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'lax',
+      sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
     });
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (err) {

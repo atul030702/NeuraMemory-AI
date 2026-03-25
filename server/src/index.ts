@@ -25,8 +25,6 @@ app.use(
     origin: (origin, callback) => {
       // allow server-to-server / curl requests (no origin header)
       if (!origin) return callback(null, true);
-      // dynamically allow vercel deployments
-      if (origin.endsWith('.vercel.app')) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       
       console.warn(`[CORS] Rejected Origin: ${origin}`);
