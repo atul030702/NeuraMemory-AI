@@ -28,6 +28,7 @@ const envSchema = z.object({
   OCR_TESSERACT_LANG: z.string().default('eng'),
   OCR_FORCE: z.string().default('false'),
   ALLOWED_ORIGINS: z.string(),
+  CHAT_MODEL: z.string().default('google/gemini-2.0-flash-001'),
 });
 
 const _env = envSchema.safeParse(process.env);

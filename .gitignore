@@ -6,6 +6,7 @@ dist/
 build/
 .next/
 out/
+*__tests__*
 
 # Environment variables
 .env
