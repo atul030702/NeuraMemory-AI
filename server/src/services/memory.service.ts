@@ -176,5 +176,5 @@ export async function updateMemoryById(
     throw new AppError(500, 'Embedding generation returned no result.');
   }
 
-  await updateMemoryPoint(pointId, vector, newText);
+  await updateMemoryPoint(pointId, vector, newText, point.payload);
 }

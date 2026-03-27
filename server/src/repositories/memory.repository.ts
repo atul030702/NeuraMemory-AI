@@ -212,6 +212,7 @@ export async function updateMemoryPoint(
   pointId: string,
   vector: number[],
   text: string,
+  existingPayload: Partial<StoredMemoryPayload> = {},
 ): Promise<void> {
   await ensureCollection();
   const client = getQdrantClient();
@@ -223,6 +224,7 @@ export async function updateMemoryPoint(
         id: pointId,
         vector,
         payload: {
+          ...existingPayload,
           text,
           updatedAt: new Date().toISOString(),
         },

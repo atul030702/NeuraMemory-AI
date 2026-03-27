@@ -129,7 +129,7 @@ export async function getMemories(
     const sourceRaw = req.query['source'];
     const source: MemorySource | undefined =
       typeof sourceRaw === 'string' &&
-      ['text', 'document', 'link'].includes(sourceRaw)
+        ['text', 'document', 'link'].includes(sourceRaw)
         ? (sourceRaw as MemorySource)
         : undefined;
 
