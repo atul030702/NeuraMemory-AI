@@ -20,18 +20,25 @@ const SUGGESTIONS = [
 ];
 
 const AssistantAvatar = () => (
-  <div className="flex items-center justify-center w-7 h-7 shrink-0 rounded-full bg-gradient-to-br from-violet-500 to-sky-500 mt-1 shadow-sm">
+  <div className="flex items-center justify-center w-7 h-7 shrink-0 rounded-full bg-neutral-900 border border-neutral-700 mt-1 shadow-sm overflow-hidden">
     <svg
-      width="14"
-      height="14"
+      width="20"
+      height="20"
+      viewBox="0 0 38 38"
       fill="none"
-      viewBox="0 0 24 24"
-      stroke="white"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+      <rect x="7" y="7" width="24" height="24" rx="6" fill="#18181b" stroke="#38bdf8" strokeWidth="2" />
+      <rect x="13" y="13" width="12" height="12" rx="3" fill="#a78bfa" stroke="#38bdf8" strokeWidth="1.5" />
+      <circle cx="13" cy="13" r="2" fill="#38bdf8" />
+      <circle cx="25" cy="13" r="2" fill="#38bdf8" />
+      <circle cx="13" cy="25" r="2" fill="#38bdf8" />
+      <circle cx="25" cy="25" r="2" fill="#38bdf8" />
+      <rect x="18" y="18" width="2" height="2" rx="1" fill="#fff" />
+      <path d="M19 7V11" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M19 27V31" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7 19H11" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M27 19H31" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   </div>
 );
@@ -116,18 +123,25 @@ function RightSidebar() {
       <div className="flex flex-col p-6 pb-2 relative z-10 shrink-0">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-sky-500 shadow-md">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-700 shadow-md overflow-hidden">
               <svg
-                width="18"
-                height="18"
+                width="24"
+                height="24"
+                viewBox="0 0 38 38"
                 fill="none"
-                viewBox="0 0 24 24"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                <rect x="7" y="7" width="24" height="24" rx="6" fill="#18181b" stroke="#38bdf8" strokeWidth="2" />
+                <rect x="13" y="13" width="12" height="12" rx="3" fill="#a78bfa" stroke="#38bdf8" strokeWidth="1.5" />
+                <circle cx="13" cy="13" r="2" fill="#38bdf8" />
+                <circle cx="25" cy="13" r="2" fill="#38bdf8" />
+                <circle cx="13" cy="25" r="2" fill="#38bdf8" />
+                <circle cx="25" cy="25" r="2" fill="#38bdf8" />
+                <rect x="18" y="18" width="2" height="2" rx="1" fill="#fff" />
+                <path d="M19 7V11" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M19 27V31" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M7 19H11" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M27 19H31" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
             <h2 className="text-xl font-bold tracking-tight text-white">
@@ -181,7 +195,7 @@ function RightSidebar() {
           if (msg.role === 'user') {
             return (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[80%] bg-gradient-to-br from-violet-500 to-sky-500 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
+                <div className="max-w-[80%] bg-linear-to-br from-violet-500 to-sky-500 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                 </div>
               </div>
@@ -230,25 +244,8 @@ function RightSidebar() {
       </div>
 
       {/* ── Chat Input ──────────────────────────────────────── */}
-      <div className="p-4 bg-neutral-900/80 backdrop-blur-md border-t border-neutral-800 relative z-10 shrink-0">
-        <div className="relative flex items-end gap-2 bg-neutral-800/50 border border-neutral-700 focus-within:border-sky-500 rounded-2xl px-3 py-2.5 transition-colors duration-200 shadow-inner">
-          {/* Attachment button (reserved) */}
-          <button className="flex items-center justify-center w-8 h-8 rounded-full text-slate-400 hover:text-white hover:bg-neutral-700 transition shrink-0 cursor-pointer">
-            <svg
-              width="18"
-              height="18"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-              />
-            </svg>
-          </button>
+      <div className="px-4 pt-3 pb-4 bg-neutral-950/60 backdrop-blur-md border-t border-neutral-800/60 relative z-10 shrink-0">
+        <div className="flex items-end gap-2 bg-neutral-900 border border-neutral-700/80 focus-within:border-sky-500/70 rounded-2xl px-4 py-3 transition-colors duration-200">
 
           <textarea
             rows={1}
@@ -262,7 +259,7 @@ function RightSidebar() {
             }}
             disabled={isLoading}
             placeholder="Message Neura AI..."
-            className="flex-1 max-h-32 min-h-[24px] bg-transparent text-sm text-white placeholder:text-slate-500 outline-none resize-none pt-1"
+            className="flex-1 max-h-32 min-h-[24px] bg-transparent text-sm text-white placeholder:text-slate-500 outline-none resize-none leading-relaxed"
           />
 
           {/* Send button */}
@@ -270,11 +267,11 @@ function RightSidebar() {
             onClick={handleSubmit}
             disabled={isLoading || !input.trim()}
             title="Send"
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-sky-500 text-white shadow-lg hover:shadow-sky-500/25 transition shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-linear-to-br from-violet-500 to-sky-500 text-white shadow-md transition shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
           >
             <svg
-              width="16"
-              height="16"
+              width="15"
+              height="15"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -288,8 +285,8 @@ function RightSidebar() {
             </svg>
           </button>
         </div>
-        <div className="text-center mt-2 pb-1">
-          <span className="text-[10px] text-slate-500">
+        <div className="text-center mt-2">
+          <span className="text-[10px] text-slate-600">
             Neura AI can make mistakes. Verify important info.
           </span>
         </div>
