@@ -150,3 +150,11 @@ cp client/.env.example client/.env.production
 - AI: OpenRouter (memory extraction and embeddings)
 - Processing: Firecrawl, pdfjs-dist, document parsers, local OCR fallback
 - Tooling: ESLint, Prettier, Vitest, Docker Compose
+
+
+## Future prospects:
+- To build our own "memory database" to make sure we are able to have custom architecture for this specific purpose
+- To improve to code for any inefficiencies in terms of modularity and the way we handle things
+- To ensure generic and custom support for as many platforms and IDEs as possible.
+- To improve the architecture such that local LLMs and BYOK features are supported seamlessly (For those who want to self-host)
+- Implement Installation guide for users
