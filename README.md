@@ -4,6 +4,12 @@
 
 NeuraMemory AI is an open-source, high-performance memory engine designed to give Large Language Models (LLMs) a persistent, cross-session, and model-agnostic long-term memory. It acts like a “second brain,” helping you save, organize, and find information easily, while understanding context, linking related ideas, and giving smart summaries and insights.
 
+**Presentation link:** https://neuramemory-ai-ea5s372.gamma.site/
+
+**Demo Link:** https://youtu.be/eSowmleQzQY?si=iYT1t2C6Sxl-blqX
+
+**Live Link:** https://neura-memory-ai.vercel.app/
+
 ## The Problem
 
 Currently, interacting with AI feels like meeting a brilliant person who gets a concussion every time you close the chat window. This creates three critical failures in the developer and user experience:
@@ -159,4 +165,3 @@ cp client/.env.example client/.env.production
 - To improve the architecture such that local LLMs and BYOK features are supported seamlessly (For those who want to self-host)
 - Implement Installation guide for users
 
-**[See the project details](https://neuramemory-ai-ea5s372.gamma.site/)**
